@@ -1,11 +1,14 @@
 package main
 
 import (
-   "atlas-clc/models"
+   "atlas-clc/crypto"
+   "atlas-clc/packets"
+   "atlas-clc/packets/inputs/handlers"
    "atlas-clc/registries"
-   "bufio"
+   "atlas-clc/sessions"
    "log"
    "net"
+   "time"
 )
 
 type ConnectionHandler struct {
@@ -16,25 +19,56 @@ func NewConnectionHandler(l *log.Logger) *ConnectionHandler {
    return &ConnectionHandler{l}
 }
 
-func (h *ConnectionHandler) Init(c net.Conn, sessionId int) {
-   h.l.Println("Client " + c.RemoteAddr().String() + " connected.")
+func (ch *ConnectionHandler) Init(c net.Conn, sessionId int) {
+   ch.l.Println("Client " + c.RemoteAddr().String() + " connected.")
 
-   s := models.NewSession(sessionId, &c, h.l)
+   s := sessions.NewSession(sessionId, &c, ch.l)
    registries.GetSessionRegistry().AddSession(s)
    s.WriteHello()
 
-   h.ReadLoop(c, sessionId)
+   ch.ReadLoop(c, sessionId, 4)
 }
 
-func (h *ConnectionHandler) ReadLoop(c net.Conn, sessionId int) {
-   bufio.NewReader(c).Size()
-   bufio.NewReader(c).Peek()
-   buffer, err := bufio.NewReader(c).ReadBytes('\n')
-   if err != nil {
-      h.l.Println("Client left.")
-      c.Close()
-      return
+func (ch *ConnectionHandler) ReadLoop(c net.Conn, sessionId int, headerSize int) {
+   header := true
+   readSize := headerSize
+
+   session := registries.GetSessionRegistry().GetSession(sessionId)
+
+   for {
+      buffer := make([]byte, readSize)
+
+      if _, err := c.Read(buffer); err != nil {
+         break
+      }
+
+      if header {
+         readSize = crypto.GetPacketLength(buffer)
+      } else {
+         readSize = headerSize
+
+         result := buffer
+         if session.GetRecv() != nil {
+            ue := session.GetRecv().Decrypt(buffer, true, true)
+            result = ue
+         }
+         ch.Handle(sessionId, result)
+      }
+
+      header = !header
    }
-   h.l.Println("Client message:", string(buffer[:len(buffer)-1]))
-   h.ReadLoop(c, sessionId)
+
+   ch.l.Printf("Session %d exiting read loop.", sessionId)
+}
+
+func (ch *ConnectionHandler) Handle(sessionId int, p packets.Packet) {
+   go func(sessionId int, reader packets.Reader) {
+      op := reader.ReadInt16()
+      h := handlers.GetHandler(op)
+      if h != nil {
+         h(sessionId, &reader, ch.l)
+      } else {
+         ch.l.Printf("Session %d read a message with op %d.", sessionId, op)
+      }
+   }(sessionId, packets.NewReader(&p, time.Now().Unix()))
 }

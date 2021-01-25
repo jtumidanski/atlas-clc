@@ -1,6 +1,7 @@
-package models
+package sessions
 
 import (
+   "atlas-clc/crypto"
    "atlas-clc/writers"
    "log"
    "math/rand"
@@ -11,8 +12,8 @@ type Session struct {
    id   int
    con  net.Conn
    l    *log.Logger
-   send AESOFB
-   recv AESOFB
+   send crypto.AESOFB
+   recv crypto.AESOFB
 }
 
 const (
@@ -24,8 +25,8 @@ func NewSession(id int, con *net.Conn, l *log.Logger) *Session {
    sendIv := []byte{82, 48, 120, 115}
    recvIv[3] = byte(rand.Float64() * 255)
    sendIv[3] = byte(rand.Float64() * 255)
-   send := NewAESOFB(sendIv, uint16(65535)-version)
-   recv := NewAESOFB(recvIv, version)
+   send := crypto.NewAESOFB(sendIv, uint16(65535)-version)
+   recv := crypto.NewAESOFB(recvIv, version)
    return &Session{id, *con, l, *send, *recv}
 }
 
@@ -40,6 +41,14 @@ func (s *Session) Announce(m []byte) {
    }
 }
 
-func (r *Session) WriteHello() {
-   r.Announce(writers.WriteHello(version, r.send.iv, r.recv.iv).Bytes())
+func (s *Session) WriteHello() {
+   s.Announce(writers.WriteHello(version, s.send.IV(), s.recv.IV()).Bytes())
+}
+
+func (s *Session) GetRecv() *crypto.AESOFB {
+   return &s.recv
+}
+
+func (s *Session) GetRemoteAddress() net.Addr {
+   return s.con.RemoteAddr()
 }

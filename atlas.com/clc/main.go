@@ -9,7 +9,7 @@ import (
 var sessionId = 0
 
 func main() {
-   l := log.New(os.Stdout, "morg ", log.LstdFlags|log.Lmicroseconds)
+   l := log.New(os.Stdout, "clc ", log.LstdFlags|log.Lmicroseconds)
 
    l.Println("Starting tcp server on 0.0.0.0:8484")
    lis, err := net.Listen("tcp", "0.0.0.0:8484")
