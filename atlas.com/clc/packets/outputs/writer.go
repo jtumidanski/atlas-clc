@@ -56,16 +56,17 @@ func (w *Writer) WriteBool(val bool) {
 	if !val {
 		i = 0
 	}
-
-	err := binary.Write(w.o, binary.LittleEndian, i)
-	if err != nil {
-		log.Fatal("[ERROR] writing byte value")
-	}
+	w.WriteByte(byte(i))
 }
 
 func (w *Writer) WriteAsciiString(s string) {
 	w.WriteShort(uint16(len(s)))
 	w.WriteByteArray([]byte(s))
+}
+
+func (w *Writer) WriteKeyValue(key byte, value uint32) {
+	w.WriteByte(key)
+	w.WriteInt(value)
 }
 
 func (w *Writer) Bytes() []byte {

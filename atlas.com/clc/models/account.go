@@ -7,7 +7,7 @@ type Account struct {
 	pin            string
 	pic            string
 	loggedIn       int
-	lastLogin      string
+	lastLogin      uint64
 	gender         byte
 	banned         bool
 	tos            bool
@@ -16,7 +16,7 @@ type Account struct {
 	characterSlots int16
 }
 
-func NewAccount(id int, name string, password string, pin string, pic string, loggedIn int, lastLogin string, gender byte, banned bool, tos bool, language string, country string, characterSlots int16) *Account {
+func NewAccount(id int, name string, password string, pin string, pic string, loggedIn int, lastLogin uint64, gender byte, banned bool, tos bool, language string, country string, characterSlots int16) *Account {
 	return &Account{
 		id:             id,
 		name:           name,
@@ -48,4 +48,8 @@ func (a *Account) Gender() byte {
 
 func (a *Account) PIC() string {
 	return a.pic
+}
+
+func (a *Account) CharacterSlots() int16 {
+	return a.characterSlots
 }

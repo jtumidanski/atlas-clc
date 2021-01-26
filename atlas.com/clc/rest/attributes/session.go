@@ -1,23 +1,25 @@
 package attributes
 
 type SessionListDataContainer struct {
-   Data []SessionData `json:"data"`
+	Data []SessionData `json:"data"`
 }
 
 type SessionDataContainer struct {
-   Data SessionData `json:"data"`
+	Data SessionData `json:"data"`
 }
 
 type SessionInputDataContainer struct {
-   Data SessionData `json:"data"`
+	Data SessionData `json:"data"`
 }
 
 type SessionData struct {
-   Id         string            `json:"id"`
-   Type       string            `json:"type"`
-   Attributes SessionAttributes `json:"attributes"`
+	Id         string            `json:"id"`
+	Type       string            `json:"type"`
+	Attributes SessionAttributes `json:"attributes"`
 }
 
 type SessionAttributes struct {
-   AccountId int
+	AccountId int  `json:"accountId"`
+	WorldId   byte `json:"worldId"`
+	ChannelId byte `json:"channelId"`
 }

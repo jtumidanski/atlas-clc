@@ -130,7 +130,7 @@ func (r *Reader) ReadString(size int16) string {
    return ""
 }
 
-func (r Reader) ReadAsciiString() string {
+func (r *Reader) ReadAsciiString() string {
    am := r.ReadInt16()
    return r.ReadString(am)
 }

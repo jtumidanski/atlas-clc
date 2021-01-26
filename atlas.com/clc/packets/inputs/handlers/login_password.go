@@ -19,7 +19,7 @@ import (
 type LoginPasswordHandler struct {
 }
 
-func (h LoginPasswordHandler) Handle(l *log.Logger, sessionId int, r *inputs.Reader) {
+func (h *LoginPasswordHandler) Handle(l *log.Logger, sessionId int, r *inputs.Reader) {
 	s := registries.GetSessionRegistry().GetSession(sessionId)
 	p := readers.ReadLoginPassword(r)
 	h.handle(l, s, p)
@@ -54,7 +54,7 @@ func (h *LoginPasswordHandler) handle(l *log.Logger, s *sessions.Session, p *mod
 }
 
 func (h *LoginPasswordHandler) authorizeSuccess(l *log.Logger, s *sessions.Session, name string) {
-	a, err := processors.GetAccount(l, name)
+	a, err := processors.GetAccountByName(l, name)
 	if err == nil {
 		s.SetAccountId(a.Id())
 		s.Announce(writers.WriteAuthSuccess(a.Id(), a.Name(), a.Gender(), a.PIC()))
@@ -66,14 +66,8 @@ func (h *LoginPasswordHandler) announceSystemError(s *sessions.Session) {
 }
 
 func (h LoginPasswordHandler) processFirstError(l *log.Logger, s *sessions.Session, data attributes.ErrorData) {
-	r, err := strconv.ParseInt(data.Code, 10, 8)
-	if err != nil {
-		l.Println("[ERROR] parsing error code for login.")
-		h.announceSystemError(s)
-		return
-	}
-
-	if byte(r) == constants.DeletedOrBlocked {
+	r := constants.GetLoginFailedReason(data.Code)
+	if r == constants.DeletedOrBlocked {
 		if data.Detail == "" {
 			s.Announce(writers.WriteLoginFailed(constants.DeletedOrBlocked))
 			return
@@ -98,5 +92,5 @@ func (h LoginPasswordHandler) processFirstError(l *log.Logger, s *sessions.Sessi
 		s.Announce(writers.WritePermanentBan(byte(rc)))
 		return
 	}
-	s.Announce(writers.WriteLoginFailed(byte(r)))
+	s.Announce(writers.WriteLoginFailed(r))
 }
