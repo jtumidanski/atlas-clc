@@ -27,9 +27,28 @@ func (r *SessionRegistry) AddSession(s *sessions.Session) {
    r.mutex.Unlock()
 }
 
+func (r *SessionRegistry) RemoveSession(sessionId int) {
+   r.mutex.Lock()
+   delete(r.sessionRegistry, sessionId)
+   r.mutex.Unlock()
+}
+
 func (r *SessionRegistry) GetSession(sessionId int) *sessions.Session {
+   var ses *sessions.Session
    r.mutex.RLock()
-   s := r.sessionRegistry[sessionId]
+   if val, ok := r.sessionRegistry[sessionId]; ok {
+      ses = &val
+   }
    r.mutex.RUnlock()
-   return &s
+   return ses
+}
+
+func (r *SessionRegistry) GetSessions() []sessions.Session {
+   r.mutex.RLock()
+   s := make([]sessions.Session, 0)
+   for _, v := range r.sessionRegistry {
+      s = append(s, v)
+   }
+   r.mutex.RUnlock()
+   return s
 }

@@ -1,33 +1,29 @@
 package main
 
 import (
+   "atlas-clc/servers/rest"
+   "atlas-clc/servers/socket"
    "log"
-   "net"
    "os"
+   "os/signal"
+   "syscall"
 )
 
-var sessionId = 0
 
 func main() {
    l := log.New(os.Stdout, "clc ", log.LstdFlags|log.Lmicroseconds)
 
-   l.Println("Starting tcp server on 0.0.0.0:8484")
-   lis, err := net.Listen("tcp", "0.0.0.0:8484")
-   if err != nil {
-      l.Println("Error listening:", err.Error())
-      os.Exit(1)
-   }
-   defer lis.Close()
+   ss := socket.NewServer(l)
+   go ss.Run()
 
-   for {
-      c, err := lis.Accept()
-      if err != nil {
-         l.Println("Error connecting:", err.Error())
-         return
-      }
-      l.Println("Client connected.")
+   hs := rest.NewServer(l)
+   go hs.Run()
 
-      go NewConnectionHandler(l).Init(c, sessionId)
-      sessionId += 1
-   }
+   // trap sigterm or interrupt and gracefully shutdown the server
+   c := make(chan os.Signal, 1)
+   signal.Notify(c, os.Interrupt, os.Kill, syscall.SIGTERM)
+
+   // Block until a signal is received.
+   sig := <-c
+   l.Println("Got signal:", sig)
 }
