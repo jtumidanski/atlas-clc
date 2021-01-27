@@ -1,17 +1,5 @@
 package attributes
 
-type EquipmentListDataContainer struct {
-	Data []EquipmentData `json:"data"`
-}
-
-type EquipmentDataContainer struct {
-	Data EquipmentData `json:"data"`
-}
-
-type EquipmentInputDataContainer struct {
-	Data EquipmentData `json:"data"`
-}
-
 type EquipmentData struct {
 	Id         string              `json:"id"`
 	Type       string              `json:"type"`
@@ -23,16 +11,8 @@ type EquipmentAttributes struct {
 	Slot        int16 `json:"slot"`
 }
 
-type EquipmentStatisticsListDataContainer struct {
-	Data []EquipmentStatisticsData `json:"data"`
-}
-
-type EquipmentStatisticsDataContainer struct {
-	Data EquipmentStatisticsData `json:"data"`
-}
-
-type EquipmentStatisticsInputDataContainer struct {
-	Data EquipmentStatisticsData `json:"data"`
+func EmptyEquipmentData() interface{} {
+	return &EquipmentData{}
 }
 
 type EquipmentStatisticsData struct {
@@ -59,4 +39,8 @@ type EquipmentStatisticsAttributes struct {
 	Speed         uint16 `json:"speed"`
 	Jump          uint16 `json:"jump"`
 	Slots         uint16 `json:"slots"`
+}
+
+func EmptyEquipmentStatisticsData() interface{} {
+	return &EquipmentStatisticsData{}
 }

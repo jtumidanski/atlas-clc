@@ -10,10 +10,10 @@ func GetBlockedName(l *log.Logger, name string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if len(a.Data) <= 0 {
+	if len(a.DataList()) <= 0 {
 		return "", err
 	}
-	return a.Data[0].Attributes.Name, nil
+	return a.Data().Attributes.Name, nil
 }
 
 func IsBlockedName(l *log.Logger, name string) (bool, error) {

@@ -103,33 +103,33 @@ func multiplyBytes(input []byte, count int, mul int) []byte {
 }
 
 // Taken from Kagami
-func (z *AESOFB) mapleCrypt(input []byte) {
+func (a *AESOFB) mapleCrypt(input []byte) {
 	var j int32
-	var a, c byte
+	var b, c byte
 
 	for i := byte(0); i < 3; i++ {
-		a = 0
+		b = 0
 
 		for j = int32(len(input)); j > 0; j-- {
 			c = input[int32(len(input))-j]
 			c = rol(c, 3)
 			c = byte(int32(c) + j)
-			c ^= a
-			a = c
-			c = ror(a, int(j))
+			c ^= b
+			b = c
+			c = ror(b, int(j))
 			c ^= 0xFF
 			c += 0x48
 			input[int32(len(input))-j] = c
 		}
 
-		a = 0
+		b = 0
 
 		for j = int32(len(input)); j > 0; j-- {
 			c = input[j-1]
 			c = rol(c, 4)
 			c = byte(int32(c) + j)
-			c ^= a
-			a = c
+			c ^= b
+			b = c
 			c ^= 0x13
 			c = ror(c, 3)
 			input[j-1] = c
@@ -137,27 +137,27 @@ func (z *AESOFB) mapleCrypt(input []byte) {
 	}
 }
 
-func (z *AESOFB) mapleDecrypt(input []byte) {
+func (a *AESOFB) mapleDecrypt(input []byte) {
 	var j int32
-	var a, b, c byte
+	var d, b, c byte
 
 	for i := byte(0); i < 3; i++ {
-		a = 0
+		d = 0
 		b = 0
 
 		for j = int32(len(input)); j > 0; j-- {
 			c = input[j-1]
 			c = rol(c, 3)
 			c ^= 0x13
-			a = c
+			d = c
 			c ^= b
 			c = byte(int32(c) - j)
 			c = ror(c, 4)
-			b = a
+			b = d
 			input[j-1] = c
 		}
 
-		a = 0
+		d = 0
 		b = 0
 
 		for j = int32(len(input)); j > 0; j-- {
@@ -165,23 +165,23 @@ func (z *AESOFB) mapleDecrypt(input []byte) {
 			c -= 0x48
 			c ^= 0xFF
 			c = rol(c, int(j))
-			a = c
+			d = c
 			c ^= b
 			c = byte(int32(c) - j)
 			c = ror(c, 3)
-			b = a
+			b = d
 			input[int32(len(input))-j] = c
 		}
 	}
 }
 
-func (c *AESOFB) generateHeader(input []byte) {
-	len := int32(len(input[encryptHeaderSize:]))
-	iiv := int32(c.iv[3] & 255)
-	iiv |= int32(c.iv[2]) << 8 & '\uff00'
-	iiv ^= int32(c.version)
+func (a *AESOFB) generateHeader(input []byte) {
+	bodyLength := int32(len(input[encryptHeaderSize:]))
+	iiv := int32(a.iv[3] & 255)
+	iiv |= int32(a.iv[2]) << 8 & '\uff00'
+	iiv ^= int32(a.version)
 
-	mLen := len<<8&'\uff00' | len>>8
+	mLen := bodyLength<<8&'\uff00' | bodyLength>>8
 	xoredIv := iiv ^ mLen
 	input[0] = byte(iiv >> 8 & 255)
 	input[1] = byte(iiv & 255)

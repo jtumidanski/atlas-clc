@@ -15,7 +15,7 @@ func GetWorlds(l *log.Logger) ([]models.World, error) {
 	}
 
 	var ws = make([]models.World, 0)
-	for _, x := range r.Data {
+	for _, x := range r.DataList() {
 		w, err := makeWorld(x)
 		if err == nil {
 			ws = append(ws, *w)
@@ -30,7 +30,7 @@ func GetWorld(l *log.Logger, worldId byte) (*models.World, error) {
 		return nil, err
 	}
 
-	return makeWorld(r.Data)
+	return makeWorld(*r.Data())
 }
 
 func makeWorld(data attributes.WorldData) (*models.World, error) {

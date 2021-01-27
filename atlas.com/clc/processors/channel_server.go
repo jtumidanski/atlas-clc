@@ -15,7 +15,7 @@ func GetChannels(l *log.Logger) ([]models.Channel, error) {
 	}
 
 	var cs = make([]models.Channel, 0)
-	for _, x := range r.Data {
+	for _, x := range r.DataList() {
 		w, err := makeChannel(x)
 		if err == nil {
 			cs = append(cs, *w)
@@ -31,7 +31,7 @@ func GetChannelsForWorld(l *log.Logger, worldId byte) ([]models.Channel, error) 
 	}
 
 	var cs = make([]models.Channel, 0)
-	for _, x := range r.Data {
+	for _, x := range r.DataList() {
 		w, err := makeChannel(x)
 		if err == nil {
 			cs = append(cs, *w)
@@ -46,7 +46,7 @@ func GetChannelForWorld(l *log.Logger, worldId byte, channelId byte) (*models.Ch
 		return nil, err
 	}
 
-	for _, x := range r.Data {
+	for _, x := range r.DataList() {
 		w, err := makeChannel(x)
 		if err == nil && w.ChannelId() == channelId {
 			return w, nil

@@ -1,15 +1,8 @@
 package attributes
 
-type AccountListDataContainer struct {
-	Data []AccountData `json:"data"`
-}
-
 type AccountDataContainer struct {
-	Data AccountData `json:"data"`
-}
-
-type AccountInputDataContainer struct {
-	Data AccountData `json:"data"`
+	data     dataSegment
+	included dataSegment
 }
 
 type AccountData struct {
@@ -31,4 +24,34 @@ type AccountAttributes struct {
 	Language       string `json:"language"`
 	Country        string `json:"country"`
 	CharacterSlots int16  `json:"characterSlots"`
+}
+
+func (a *AccountDataContainer) UnmarshalJSON(data []byte) error {
+	d, i, err := unmarshalRoot(data, mapperFunc(EmptyAccountData))
+	if err != nil {
+		return err
+	}
+
+	a.data = d
+	a.included = i
+	return nil
+}
+
+func (a *AccountDataContainer) Data() *AccountData {
+	if len(a.data) >= 1 {
+		return a.data[0].(*AccountData)
+	}
+	return nil
+}
+
+func (a *AccountDataContainer) DataList() []AccountData {
+	var r = make([]AccountData, 0)
+	for _, x := range a.data {
+		r = append(r, *x.(*AccountData))
+	}
+	return r
+}
+
+func EmptyAccountData() interface{} {
+	return &AccountData{}
 }

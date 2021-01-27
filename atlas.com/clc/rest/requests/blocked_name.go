@@ -6,8 +6,8 @@ import (
 	"log"
 )
 
-func GetBlockedNamesByName(l *log.Logger, name string) (*attributes.BlockedNameListDataContainer, error) {
-	ar := &attributes.BlockedNameListDataContainer{}
+func GetBlockedNamesByName(l *log.Logger, name string) (*attributes.BlockedNameDataContainer, error) {
+	ar := &attributes.BlockedNameDataContainer{}
 	err := Get(l, fmt.Sprintf("http://atlas-nginx:80/ms/cos/blockedNames?name=%s", name), ar)
 	if err != nil {
 		return nil, err

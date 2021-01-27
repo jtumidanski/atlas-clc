@@ -13,12 +13,13 @@ func GetAccountByName(l *log.Logger, name string) (*models.Account, error) {
 		return nil, err
 	}
 
-	aid, err := strconv.Atoi(a.Data.Id)
+	d := a.Data()
+	aid, err := strconv.Atoi(d.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	att := a.Data.Attributes
+	att := d.Attributes
 	return models.NewAccount(aid, att.Name, att.Password, att.Pin, att.Pic, att.LoggedIn, att.LastLogin, att.Gender, att.Banned, att.TOS, att.Language, att.Country, att.CharacterSlots), nil
 }
 
@@ -28,11 +29,12 @@ func GetAccountById(l *log.Logger, id int) (*models.Account, error) {
 		return nil, err
 	}
 
-	aid, err := strconv.Atoi(a.Data.Id)
+	d := a.Data()
+	aid, err := strconv.Atoi(d.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	att := a.Data.Attributes
+	att := d.Attributes
 	return models.NewAccount(aid, att.Name, att.Password, att.Pin, att.Pic, att.LoggedIn, att.LastLogin, att.Gender, att.Banned, att.TOS, att.Language, att.Country, att.CharacterSlots), nil
 }

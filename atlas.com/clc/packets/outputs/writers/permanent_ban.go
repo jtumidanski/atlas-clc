@@ -5,7 +5,7 @@ import (
 	"atlas-clc/packets/outputs/constants"
 )
 
-func WritePermanentBan(reason byte) []byte {
+func WritePermanentBan() []byte {
 	w := outputs.NewWriter()
 	w.WriteShort(constants.LoginStatus)
 	w.WriteByte(2)

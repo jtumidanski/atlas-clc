@@ -89,7 +89,7 @@ func (h LoginPasswordHandler) processFirstError(l *log.Logger, s *sessions.Sessi
 			s.Announce(writers.WriteTemporaryBan(until, byte(rc)))
 			return
 		}
-		s.Announce(writers.WritePermanentBan(byte(rc)))
+		s.Announce(writers.WritePermanentBan())
 		return
 	}
 	s.Announce(writers.WriteLoginFailed(r))

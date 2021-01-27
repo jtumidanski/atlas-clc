@@ -6,8 +6,8 @@ import (
 	"log"
 )
 
-func GetWorlds(l *log.Logger) (*attributes.WorldListDataContainer, error) {
-	r := &attributes.WorldListDataContainer{}
+func GetWorlds(l *log.Logger) (*attributes.WorldDataContainer, error) {
+	r := &attributes.WorldDataContainer{}
 	err := Get(l, "http://atlas-nginx:80/ms/wrg/worlds/", r)
 	if err != nil {
 		return nil, err

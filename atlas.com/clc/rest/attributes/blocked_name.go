@@ -1,15 +1,7 @@
 package attributes
 
-type BlockedNameListDataContainer struct {
-	Data []BlockedNameData `json:"data"`
-}
-
 type BlockedNameDataContainer struct {
-	Data BlockedNameData `json:"data"`
-}
-
-type BlockedNameInputDataContainer struct {
-	Data BlockedNameData `json:"data"`
+	data dataSegment
 }
 
 type BlockedNameData struct {
@@ -20,4 +12,33 @@ type BlockedNameData struct {
 
 type BlockedNameAttributes struct {
 	Name string `json:"name"`
+}
+
+func (b *BlockedNameDataContainer) UnmarshalJSON(data []byte) error {
+	d, _, err := unmarshalRoot(data, mapperFunc(EmptyBlockedNameData))
+	if err != nil {
+		return err
+	}
+
+	b.data = d
+	return nil
+}
+
+func (b *BlockedNameDataContainer) Data() *BlockedNameData {
+	if len(b.data) >= 1 {
+		return b.data[0].(*BlockedNameData)
+	}
+	return nil
+}
+
+func (b *BlockedNameDataContainer) DataList() []BlockedNameData {
+	var r = make([]BlockedNameData, 0)
+	for _, x := range b.data {
+		r = append(r, *x.(*BlockedNameData))
+	}
+	return r
+}
+
+func EmptyBlockedNameData() interface{} {
+	return &BlockedNameData{}
 }

@@ -1,13 +1,5 @@
 package attributes
 
-type LoginListDataContainer struct {
-	Data []LoginData `json:"data"`
-}
-
-type LoginDataContainer struct {
-	Data LoginData `json:"data"`
-}
-
 type LoginInputDataContainer struct {
 	Data LoginData `json:"data"`
 }

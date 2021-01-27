@@ -1,15 +1,8 @@
 package attributes
 
-type WorldListDataContainer struct {
-	Data []WorldData `json:"data"`
-}
-
 type WorldDataContainer struct {
-	Data WorldData `json:"data"`
-}
-
-type WorldInputDataContainer struct {
-	Data WorldData `json:"data"`
+	data     dataSegment
+	included dataSegment
 }
 
 type WorldData struct {
@@ -25,5 +18,35 @@ type WorldAttributes struct {
 	EventMessage       string `json:"eventMessage"`
 	Recommended        bool   `json:"recommended"`
 	RecommendedMessage string `json:"recommendedMessage"`
-	CapacityStatus     uint16    `json:"capacityStatus"`
+	CapacityStatus     uint16 `json:"capacityStatus"`
+}
+
+func (c *WorldDataContainer) UnmarshalJSON(data []byte) error {
+	d, i, err := unmarshalRoot(data, mapperFunc(EmptyWorldData))
+	if err != nil {
+		return err
+	}
+
+	c.data = d
+	c.included = i
+	return nil
+}
+
+func (c *WorldDataContainer) Data() *WorldData {
+	if len(c.data) >= 1 {
+		return c.data[0].(*WorldData)
+	}
+	return nil
+}
+
+func (c *WorldDataContainer) DataList() []WorldData {
+	var r = make([]WorldData, 0)
+	for _, x := range c.data {
+		r = append(r, *x.(*WorldData))
+	}
+	return r
+}
+
+func EmptyWorldData() interface{} {
+	return &WorldData{}
 }

@@ -19,7 +19,7 @@ func NewSession(l *log.Logger) *Session {
 	return &Session{l}
 }
 
-func (s *Session) GetSessions(rw http.ResponseWriter, r *http.Request) {
+func (s *Session) GetSessions(rw http.ResponseWriter, _ *http.Request) {
 	ss := registries.GetSessionRegistry().GetSessions()
 
 	var response attributes.SessionListDataContainer
