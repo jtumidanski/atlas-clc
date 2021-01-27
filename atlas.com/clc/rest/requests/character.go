@@ -6,9 +6,21 @@ import (
 	"log"
 )
 
+const (
+	CharactersServicePrefix     string = "/ms/cos/"
+	CharactersService                  = BaseRequest + CharactersServicePrefix
+	CharactersResource                 = CharactersService + "characters/"
+	CharactersByName                   = CharactersResource + "?name=%s"
+	CharactersForAccountByWorld        = CharactersResource + "?accountId=%d&worldId=%d"
+	CharactersById                     = CharactersResource + "%d"
+	CharactersInventoryResource        = CharactersResource + "%d/inventories/"
+	CharacterEquippedItems             = CharactersInventoryResource + "?type=equip&include=inventoryItems,equipmentStatistics"
+	CharacterSeeds                     = CharactersResource + "seeds/"
+)
+
 func GetCharacterAttributesByName(l *log.Logger, name string) (*attributes.CharacterAttributesDataContainer, error) {
 	ar := &attributes.CharacterAttributesDataContainer{}
-	err := Get(l, fmt.Sprintf("http://atlas-nginx:80/ms/cos/characters?name=%s", name), ar)
+	err := Get(l, fmt.Sprintf(CharactersByName, name), ar)
 	if err != nil {
 		return nil, err
 	}
@@ -17,7 +29,7 @@ func GetCharacterAttributesByName(l *log.Logger, name string) (*attributes.Chara
 
 func GetCharacterAttributesForAccountByWorld(l *log.Logger, accountId int, worldId byte) (*attributes.CharacterAttributesDataContainer, error) {
 	ar := &attributes.CharacterAttributesDataContainer{}
-	err := Get(l, fmt.Sprintf("http://atlas-nginx:80/ms/cos/characters?accountId=%d&worldId=%d", accountId, worldId), ar)
+	err := Get(l, fmt.Sprintf(CharactersForAccountByWorld, accountId, worldId), ar)
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +38,7 @@ func GetCharacterAttributesForAccountByWorld(l *log.Logger, accountId int, world
 
 func GetCharacterAttributesById(l *log.Logger, characterId uint32) (*attributes.CharacterAttributesDataContainer, error) {
 	ar := &attributes.CharacterAttributesDataContainer{}
-	err := Get(l, fmt.Sprintf("http://atlas-nginx:80/ms/cos/characters/%d", characterId), ar)
+	err := Get(l, fmt.Sprintf(CharactersById, characterId), ar)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +47,7 @@ func GetCharacterAttributesById(l *log.Logger, characterId uint32) (*attributes.
 
 func GetEquippedItemsForCharacter(l *log.Logger, characterId uint32) (*attributes.InventoryDataContainer, error) {
 	ar := &attributes.InventoryDataContainer{}
-	err := Get(l, fmt.Sprintf("http://atlas-nginx:80/ms/cos/characters/%d/inventories?type=equip&include=inventoryItems,equipmentStatistics", characterId), ar)
+	err := Get(l, fmt.Sprintf(CharacterEquippedItems, characterId), ar)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +77,7 @@ func SeedCharacter(l *log.Logger, accountId int, worldId byte, name string, job 
 		},
 	}
 
-	r, err := Post(l, "http://atlas-nginx:80/ms/cos/characters/seeds", i)
+	r, err := Post(l, CharacterSeeds, i)
 	if err != nil {
 		return nil, err
 	}

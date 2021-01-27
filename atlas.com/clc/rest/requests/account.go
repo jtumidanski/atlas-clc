@@ -6,9 +6,17 @@ import (
 	"log"
 )
 
+const (
+	AccountsServicePrefix string = "/ms/aos/"
+	AccountsService              = BaseRequest + AccountsServicePrefix
+	AccountsResource             = AccountsService + "accounts/"
+	AccountsByName               = AccountsResource + "?name=%s"
+	AccountsById                 = AccountsResource + "%d"
+)
+
 func GetAccountByName(l *log.Logger, name string) (*attributes.AccountDataContainer, error) {
 	ar := &attributes.AccountDataContainer{}
-	err := Get(l, fmt.Sprintf("http://atlas-nginx:80/ms/aos/accounts?name=%s", name), ar)
+	err := Get(l, fmt.Sprintf(AccountsByName, name), ar)
 	if err != nil {
 		return nil, err
 	}
@@ -17,7 +25,7 @@ func GetAccountByName(l *log.Logger, name string) (*attributes.AccountDataContai
 
 func GetAccountById(l *log.Logger, id int) (*attributes.AccountDataContainer, error) {
 	ar := &attributes.AccountDataContainer{}
-	err := Get(l, fmt.Sprintf("http://atlas-nginx:80/ms/aos/accounts/%d", id), ar)
+	err := Get(l, fmt.Sprintf(AccountsById, id), ar)
 	if err != nil {
 		return nil, err
 	}

@@ -9,6 +9,10 @@ import (
 	"net/http"
 )
 
+const (
+	BaseRequest string = "http://atlas-nginx:80"
+)
+
 func Get(l *log.Logger, url string, resp interface{}) error {
 	r, err := http.Get(url)
 	if err != nil {

@@ -6,9 +6,16 @@ import (
 	"log"
 )
 
+const (
+	WorldRegistryServicePrefix string = "/ms/wrg/"
+	WorldRegistryService              = BaseRequest + WorldRegistryServicePrefix
+	WorldsResource                    = WorldRegistryService + "worlds/"
+	WorldsById                        = WorldsResource + "%d"
+)
+
 func GetWorlds(l *log.Logger) (*attributes.WorldDataContainer, error) {
 	r := &attributes.WorldDataContainer{}
-	err := Get(l, "http://atlas-nginx:80/ms/wrg/worlds/", r)
+	err := Get(l, WorldsResource, r)
 	if err != nil {
 		return nil, err
 	}
@@ -17,7 +24,7 @@ func GetWorlds(l *log.Logger) (*attributes.WorldDataContainer, error) {
 
 func GetWorld(l *log.Logger, worldId byte) (*attributes.WorldDataContainer, error) {
 	r := &attributes.WorldDataContainer{}
-	err := Get(l, fmt.Sprintf("http://atlas-nginx:80/ms/wrg/worlds/%d", worldId), r)
+	err := Get(l, fmt.Sprintf(WorldsById, worldId), r)
 	if err != nil {
 		return nil, err
 	}

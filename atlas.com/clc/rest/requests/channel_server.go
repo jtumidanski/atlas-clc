@@ -6,9 +6,14 @@ import (
 	"log"
 )
 
+const (
+	ChannelServersResource            = WorldRegistryService + "channelServers/"
+	ChannelServersByWorld             = ChannelServersResource + "?world=%d"
+)
+
 func GetChannels(l *log.Logger) (*attributes.ChannelServerDataContainer, error) {
 	r := &attributes.ChannelServerDataContainer{}
-	err := Get(l, "http://atlas-nginx:80/ms/wrg/channelServers/", r)
+	err := Get(l, ChannelServersResource, r)
 	if err != nil {
 		return nil, err
 	}
@@ -17,7 +22,7 @@ func GetChannels(l *log.Logger) (*attributes.ChannelServerDataContainer, error) 
 
 func GetChannelsForWorld(l *log.Logger, worldId byte) (*attributes.ChannelServerDataContainer, error) {
 	r := &attributes.ChannelServerDataContainer{}
-	err := Get(l, fmt.Sprintf("http://atlas-nginx:80/ms/wrg/channelServers/?world=%d", worldId), r)
+	err := Get(l, fmt.Sprintf(ChannelServersByWorld, worldId), r)
 	if err != nil {
 		return nil, err
 	}

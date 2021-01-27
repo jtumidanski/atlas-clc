@@ -7,6 +7,11 @@ import (
 	"net/http"
 )
 
+const (
+	LoginsResource = AccountsService + "logins/"
+	LoginsById     = LoginsResource + "%d"
+)
+
 func CreateLogin(l *log.Logger, sessionId int, name string, password string, ipAddress string) (r *http.Response, err error) {
 	i := attributes.LoginInputDataContainer{
 		Data: attributes.LoginData{
@@ -22,9 +27,9 @@ func CreateLogin(l *log.Logger, sessionId int, name string, password string, ipA
 		},
 	}
 
-	return Post(l, "http://atlas-nginx:80/ms/aos/logins", i)
+	return Post(l, LoginsResource, i)
 }
 
 func CreateLogout(l *log.Logger, accountId int) {
-	_, _ = Delete(l, fmt.Sprintf("http://atlas-nginx:80/ms/aos/logins/%d", accountId))
+	_, _ = Delete(l, fmt.Sprintf(LoginsById, accountId))
 }
