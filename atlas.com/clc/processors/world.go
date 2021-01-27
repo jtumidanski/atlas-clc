@@ -40,7 +40,16 @@ func makeWorld(data attributes.WorldData) (*models.World, error) {
 	}
 
 	att := data.Attributes
-	return models.NewWorld(byte(wid), att.Name, att.Flag, att.Message, att.EventMessage, att.Recommended, att.RecommendedMessage, att.CapacityStatus), nil
+	return models.NewWorldBuilder().
+		SetId(byte(wid)).
+		SetName(att.Name).
+		SetFlag(att.Flag).
+		SetMessage(att.Message).
+		SetEventMessage(att.EventMessage).
+		SetRecommended(att.Recommended).
+		SetRecommendedMessage(att.RecommendedMessage).
+		SetCapacityStatus(att.CapacityStatus).
+		Build(), nil
 }
 
 func GetWorldCapacityStatus(l *log.Logger, worldId byte) uint16 {

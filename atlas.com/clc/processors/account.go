@@ -2,6 +2,7 @@ package processors
 
 import (
 	"atlas-clc/models"
+	"atlas-clc/rest/attributes"
 	"atlas-clc/rest/requests"
 	"log"
 	"strconv"
@@ -19,8 +20,7 @@ func GetAccountByName(l *log.Logger, name string) (*models.Account, error) {
 		return nil, err
 	}
 
-	att := d.Attributes
-	return models.NewAccount(aid, att.Name, att.Password, att.Pin, att.Pic, att.LoggedIn, att.LastLogin, att.Gender, att.Banned, att.TOS, att.Language, att.Country, att.CharacterSlots), nil
+	return makeAccount(aid, d.Attributes), nil
 }
 
 func GetAccountById(l *log.Logger, id int) (*models.Account, error) {
@@ -35,6 +35,22 @@ func GetAccountById(l *log.Logger, id int) (*models.Account, error) {
 		return nil, err
 	}
 
-	att := d.Attributes
-	return models.NewAccount(aid, att.Name, att.Password, att.Pin, att.Pic, att.LoggedIn, att.LastLogin, att.Gender, att.Banned, att.TOS, att.Language, att.Country, att.CharacterSlots), nil
+	return makeAccount(aid, d.Attributes), nil
+}
+
+func makeAccount(aid int, att attributes.AccountAttributes) *models.Account {
+	return models.NewAccountBuilder().
+		SetId(aid).
+		SetPassword(att.Password).
+		SetPin(att.Pin).
+		SetPic(att.Pic).
+		SetLoggedIn(att.LoggedIn).
+		SetLastLogin(att.LastLogin).
+		SetGender(att.Gender).
+		SetBanned(att.Banned).
+		SetTos(att.TOS).
+		SetLanguage(att.Language).
+		SetCountry(att.Country).
+		SetCharacterSlots(att.CharacterSlots).
+		Build()
 }

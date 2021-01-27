@@ -8,10 +8,6 @@ type Channel struct {
 	port      uint16
 }
 
-func NewChannel(worldId byte, channelId byte, capacity int, ipAddress string, port uint16) *Channel {
-	return &Channel{worldId, channelId, capacity, ipAddress, port}
-}
-
 func (c *Channel) WorldId() byte {
 	return c.worldId
 }
@@ -32,19 +28,49 @@ func (c *Channel) Port() uint16 {
 	return c.port
 }
 
-type ChannelLoad struct {
+type channelBuilder struct {
+	worldId   byte
 	channelId byte
 	capacity  int
+	ipAddress string
+	port      uint16
 }
 
-func NewChannelLoad(channelId byte, capacity int) *ChannelLoad {
-	return &ChannelLoad{channelId, capacity}
+func NewChannelBuilder() *channelBuilder {
+	return &channelBuilder{}
 }
 
-func (cl *ChannelLoad) ChannelId() byte {
-	return cl.channelId
+func (c *channelBuilder) SetWorldId(worldId byte) *channelBuilder {
+	c.worldId = worldId
+	return c
 }
 
-func (cl *ChannelLoad) Capacity() int {
-	return cl.capacity
+func (c *channelBuilder) SetChannelId(channelId byte) *channelBuilder {
+	c.channelId = channelId
+	return c
+}
+
+func (c *channelBuilder) SetCapacity(capacity int) *channelBuilder {
+	c.capacity = capacity
+	return c
+}
+
+func (c *channelBuilder) SetIpAddress(ipAddress string) *channelBuilder {
+	c.ipAddress = ipAddress
+	return c
+}
+
+func (c *channelBuilder) SetPort(port uint16) *channelBuilder {
+	c.port = port
+	return c
+}
+
+func (c *channelBuilder) Build() *Channel {
+	return &Channel{
+		worldId:   c.worldId,
+		channelId: c.channelId,
+		capacity:  c.capacity,
+		ipAddress: c.ipAddress,
+		port:      c.port,
+	}
 }

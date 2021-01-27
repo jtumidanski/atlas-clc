@@ -14,13 +14,7 @@ func GetChannels(l *log.Logger) ([]models.Channel, error) {
 		return nil, err
 	}
 
-	var cs = make([]models.Channel, 0)
-	for _, x := range r.DataList() {
-		w, err := makeChannel(x)
-		if err == nil {
-			cs = append(cs, *w)
-		}
-	}
+	var cs = makeChannelList(r.DataList())
 	return cs, nil
 }
 
@@ -30,13 +24,7 @@ func GetChannelsForWorld(l *log.Logger, worldId byte) ([]models.Channel, error) 
 		return nil, err
 	}
 
-	var cs = make([]models.Channel, 0)
-	for _, x := range r.DataList() {
-		w, err := makeChannel(x)
-		if err == nil {
-			cs = append(cs, *w)
-		}
-	}
+	var cs = makeChannelList(r.DataList())
 	return cs, nil
 }
 
@@ -47,8 +35,8 @@ func GetChannelForWorld(l *log.Logger, worldId byte, channelId byte) (*models.Ch
 	}
 
 	for _, x := range r.DataList() {
-		w, err := makeChannel(x)
-		if err == nil && w.ChannelId() == channelId {
+		w := makeChannel(x)
+		if w.ChannelId() == channelId {
 			return w, nil
 		}
 	}
@@ -73,7 +61,22 @@ func GetChannelLoadByWorld(l *log.Logger) (map[int][]models.ChannelLoad, error) 
 	return cls, nil
 }
 
-func makeChannel(data attributes.ChannelServerData) (*models.Channel, error) {
+func makeChannelList(d []attributes.ChannelServerData) []models.Channel {
+	var cs = make([]models.Channel, 0)
+	for _, x := range d {
+		c := makeChannel(x)
+		cs = append(cs, *c)
+	}
+	return cs
+}
+
+func makeChannel(data attributes.ChannelServerData) *models.Channel {
 	att := data.Attributes
-	return models.NewChannel(att.WorldId, att.ChannelId, att.Capacity, att.IpAddress, att.Port), nil
+	return models.NewChannelBuilder().
+		SetWorldId(att.WorldId).
+		SetChannelId(att.ChannelId).
+		SetCapacity(att.Capacity).
+		SetIpAddress(att.IpAddress).
+		SetPort(att.Port).
+		Build()
 }

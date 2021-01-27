@@ -28,7 +28,32 @@ func makeCharacterAttributes(ca *attributes.CharacterAttributesData) *models.Cha
 		return nil
 	}
 	att := ca.Attributes
-	return models.NewCharacterAttributes(uint32(cid), att.WorldId, att.Name, att.Gender, att.SkinColor, att.Face, att.Hair, att.Level, att.JobId, att.Strength, att.Dexterity, att.Intelligence, att.Luck, att.Hp, att.MaxHp, att.Mp, att.MaxMp, att.Ap, att.Sp, att.Experience, att.Fame, att.GachaponExperience, att.MapId, att.SpawnPoint)
+	return models.NewCharacterAttributeBuilder().
+		SetId(uint32(cid)).
+		SetWorldId(att.WorldId).
+		SetName(att.Name).
+		SetGender(att.Gender).
+		SetSkinColor(att.SkinColor).
+		SetFace(att.Face).
+		SetHair(att.Hair).
+		SetLevel(att.Level).
+		SetJobId(att.JobId).
+		SetStrength(att.Strength).
+		SetDexterity(att.Dexterity).
+		SetIntelligence(att.Intelligence).
+		SetLuck(att.Luck).
+		SetHp(att.Hp).
+		SetMaxHp(att.MaxHp).
+		SetMp(att.Mp).
+		SetMaxMp(att.MaxMp).
+		SetAp(att.Ap).
+		SetSp(att.Sp).
+		SetExperience(att.Experience).
+		SetFame(att.Fame).
+		SetGachaponExperience(att.GachaponExperience).
+		SetMapId(att.MapId).
+		SetSpawnPoint(att.SpawnPoint).
+		Build()
 }
 
 func IsValidName(l *log.Logger, name string) (bool, error) {

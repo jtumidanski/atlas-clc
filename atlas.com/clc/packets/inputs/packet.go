@@ -5,11 +5,6 @@ import "fmt"
 // Packet -
 type Packet []byte
 
-// NewPacket -
-func NewPacket() Packet {
-	return make(Packet, 0)
-}
-
 type Opcode byte
 
 // Size -

@@ -39,24 +39,6 @@ func Post(l *log.Logger, url string, input interface{}) (*http.Response, error) 
 	return r, nil
 }
 
-func Patch(l *log.Logger, url string, input interface{}) (*http.Response, error) {
-	jsonReq, err := json.Marshal(input)
-	if err != nil {
-		l.Println("[ERROR] marshalling patch body.")
-		return nil, errors.New("error marshalling patch body")
-	}
-
-	client := &http.Client{}
-	r, err := http.NewRequest(http.MethodPatch, url, bytes.NewReader(jsonReq))
-	if err != nil {
-		l.Printf("[ERROR] dispatching [PATCH] to %s", url)
-		return nil, errors.New("error dispatching patch to url")
-	}
-	r.Header.Set("Content-Type", "application/json")
-
-	return client.Do(r)
-}
-
 func Delete(l *log.Logger, url string) (*http.Response, error) {
 	client := &http.Client{}
 	r, err := http.NewRequest(http.MethodDelete, url, nil)
