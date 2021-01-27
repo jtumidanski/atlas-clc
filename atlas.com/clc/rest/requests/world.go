@@ -8,7 +8,7 @@ import (
 
 func GetWorlds(l *log.Logger) (*attributes.WorldListDataContainer, error) {
 	r := &attributes.WorldListDataContainer{}
-	err := Get(l, "http://atlas-nginx:80/ms/wrg/worlds", r)
+	err := Get(l, "http://atlas-nginx:80/ms/wrg/worlds/", r)
 	if err != nil {
 		return nil, err
 	}

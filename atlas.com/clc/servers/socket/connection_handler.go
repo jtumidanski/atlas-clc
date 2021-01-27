@@ -72,7 +72,7 @@ func (ch *ConnectionHandler) Handle(sessionId int, p inputs.Packet) {
 		if h != nil {
 			h.Handle(sessionId, &reader)
 		} else {
-			ch.l.Printf("Session %d read a message with op %05X.", sessionId, op&0xFF)
+			ch.l.Printf("Session %d read a unhandled message with op %05X.", sessionId, op&0xFF)
 		}
 	}(sessionId, inputs.NewReader(&p, time.Now().Unix()))
 }

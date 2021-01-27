@@ -80,6 +80,7 @@ func ProcessErrorResponse(l *log.Logger, r *http.Response, eb interface{}) error
 		err := attributes.FromJSON(eb, r.Body)
 		if err != nil {
 			l.Printf("[ERROR] decoding error response")
+			l.Println(err)
 			return errors.New("error decoding error response")
 		}
 		return nil

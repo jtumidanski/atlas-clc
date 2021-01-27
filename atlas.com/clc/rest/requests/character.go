@@ -42,7 +42,7 @@ func GetEquippedItemsForCharacter(l *log.Logger, characterId uint32) (*attribute
 	return ar, nil
 }
 
-func SeedCharacter(l *log.Logger, accountId int, worldId byte, name string, job uint32, face uint32, hair uint32, color uint32, skinColor uint32, gender uint32, top uint32, bottom uint32, shoes uint32, weapon uint32) (*attributes.CharacterAttributesData, error) {
+func SeedCharacter(l *log.Logger, accountId int, worldId byte, name string, job uint32, face uint32, hair uint32, color uint32, skinColor uint32, gender byte, top uint32, bottom uint32, shoes uint32, weapon uint32) (*attributes.CharacterAttributesData, error) {
 	i := attributes.CharacterSeedAttributesInputDataContainer{
 		Data: attributes.CharacterSeedAttributesData{
 			Id:   "0",

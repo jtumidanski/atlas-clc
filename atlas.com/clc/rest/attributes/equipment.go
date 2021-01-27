@@ -36,13 +36,13 @@ type EquipmentStatisticsInputDataContainer struct {
 }
 
 type EquipmentStatisticsData struct {
-	Id         string              `json:"id"`
-	Type       string              `json:"type"`
-	Attributes EquipmentAttributes `json:"attributes"`
+	Id         string                        `json:"id"`
+	Type       string                        `json:"type"`
+	Attributes EquipmentStatisticsAttributes `json:"attributes"`
 }
 
 type EquipmentStatisticsAttributes struct {
-	ItemId        int    `json:"itemId"`
+	ItemId        uint32 `json:"itemId"`
 	Strength      uint16 `json:"strength"`
 	Dexterity     uint16 `json:"dexterity"`
 	Intelligence  uint16 `json:"intelligence"`

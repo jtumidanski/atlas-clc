@@ -8,7 +8,7 @@ import (
 
 func GetChannels(l *log.Logger) (*attributes.ChannelServerListDataContainer, error) {
 	r := &attributes.ChannelServerListDataContainer{}
-	err := Get(l, "http://atlas-nginx:80/ms/wrg/channelServers", r)
+	err := Get(l, "http://atlas-nginx:80/ms/wrg/channelServers/", r)
 	if err != nil {
 		return nil, err
 	}
@@ -17,7 +17,7 @@ func GetChannels(l *log.Logger) (*attributes.ChannelServerListDataContainer, err
 
 func GetChannelsForWorld(l *log.Logger, worldId byte) (*attributes.ChannelServerListDataContainer, error) {
 	r := &attributes.ChannelServerListDataContainer{}
-	err := Get(l, fmt.Sprintf("http://atlas-nginx:80/ms/wrg/channelServers?world=%d", worldId), r)
+	err := Get(l, fmt.Sprintf("http://atlas-nginx:80/ms/wrg/channelServers/?world=%d", worldId), r)
 	if err != nil {
 		return nil, err
 	}

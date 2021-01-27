@@ -11,7 +11,7 @@ type CreateCharacter struct {
 	bottom    uint32
 	shoes     uint32
 	weapon    uint32
-	gender    uint32
+	gender    byte
 }
 
 func (c CreateCharacter) Name() string {
@@ -35,10 +35,10 @@ func (c CreateCharacter) HairColor() uint32 {
 }
 
 func (c CreateCharacter) SkinColor() uint32 {
-	return c.hairColor
+	return c.skinColor
 }
 
-func (c CreateCharacter) Gender() uint32 {
+func (c CreateCharacter) Gender() byte {
 	return c.gender
 }
 
@@ -58,6 +58,6 @@ func (c CreateCharacter) Weapon() uint32 {
 	return c.weapon
 }
 
-func NewCreateCharacter(name string, job uint32, face uint32, hair uint32, hairColor uint32, skinColor uint32, top uint32, bottom uint32, shoes uint32, weapon uint32, gender uint32) *CreateCharacter {
+func NewCreateCharacter(name string, job uint32, face uint32, hair uint32, hairColor uint32, skinColor uint32, top uint32, bottom uint32, shoes uint32, weapon uint32, gender byte) *CreateCharacter {
 	return &CreateCharacter{name, job, face, hair, hairColor, skinColor, top, bottom, shoes, weapon, gender}
 }

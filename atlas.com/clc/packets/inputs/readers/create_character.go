@@ -16,6 +16,6 @@ func ReadCreateCharacter(reader *inputs.Reader) *models.CreateCharacter {
 	bottom := reader.ReadUint32()
 	shoes := reader.ReadUint32()
 	weapon := reader.ReadUint32()
-	gender := reader.ReadUint32()
+	gender := reader.ReadByte()
 	return models.NewCreateCharacter(name, job, face, hair, hairColor, skinColor, top, bottom, shoes, weapon, gender)
 }

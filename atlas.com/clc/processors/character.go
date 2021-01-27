@@ -115,19 +115,23 @@ func getPetsForCharacter(l *log.Logger, characterId uint32) ([]models.Pet, error
 }
 
 func getEquippedItemsForCharacter(l *log.Logger, characterId uint32) ([]models.EquippedItem, error) {
-	es, err := requests.GetEquippedItemsForCharacter(l, characterId)
+	r, err := requests.GetEquippedItemsForCharacter(l, characterId)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, x := range es.Included {
-		l.Println(x)
+	ei := make([]models.EquippedItem, 0)
+	for _, e := range r.GetIncludedEquippedItems() {
+		ea := r.GetEquipmentStatistics(e.Attributes.EquipmentId)
+		if ea != nil {
+			ei = append(ei, *models.NewEquippedItem(ea.ItemId, e.Attributes.Slot))
+		}
 	}
 
-	return make([]models.EquippedItem, 0), nil
+	return ei, nil
 }
 
-func SeedCharacter(l *log.Logger, accountId int, worldId byte, name string, job uint32, face uint32, hair uint32, color uint32, skinColor uint32, gender uint32, top uint32, bottom uint32, shoes uint32, weapon uint32) (*models.CharacterAttributes, error) {
+func SeedCharacter(l *log.Logger, accountId int, worldId byte, name string, job uint32, face uint32, hair uint32, color uint32, skinColor uint32, gender byte, top uint32, bottom uint32, shoes uint32, weapon uint32) (*models.CharacterAttributes, error) {
 	ca, err := requests.SeedCharacter(l, accountId, worldId, name, job, face, hair, color, skinColor, gender, top, bottom, shoes, weapon)
 	if err != nil {
 		return nil, err
