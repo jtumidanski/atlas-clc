@@ -38,6 +38,17 @@ func GetAccountById(l *log.Logger, id int) (*models.Account, error) {
 	return makeAccount(aid, d.Attributes), nil
 }
 
+func IsLoggedIn(l *log.Logger, id int) bool {
+	a, err := GetAccountById(l,id)
+	if err != nil {
+		return false
+	} else if a.LoggedIn() != 0 {
+		return true
+	} else {
+		return false
+	}
+}
+
 func makeAccount(aid int, att attributes.AccountAttributes) *models.Account {
 	return models.NewAccountBuilder().
 		SetId(aid).

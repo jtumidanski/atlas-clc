@@ -7,7 +7,6 @@ import (
 	"atlas-clc/packets/outputs/constants"
 	"atlas-clc/packets/outputs/writers"
 	"atlas-clc/processors"
-	"atlas-clc/registries"
 	"atlas-clc/rest/attributes"
 	"atlas-clc/rest/requests"
 	"atlas-clc/sessions"
@@ -19,8 +18,11 @@ import (
 type LoginPasswordHandler struct {
 }
 
-func (h *LoginPasswordHandler) Handle(l *log.Logger, sessionId int, r *inputs.Reader) {
-	s := registries.GetSessionRegistry().GetSession(sessionId)
+func (h *LoginPasswordHandler) IsValid(l *log.Logger, s *sessions.Session) bool {
+	return processors.IsLoggedIn(l, s.AccountId())
+}
+
+func (h *LoginPasswordHandler) Handle(l *log.Logger, s *sessions.Session, r *inputs.Reader) {
 	p := readers.ReadLoginPassword(r)
 	h.handle(l, s, p)
 }

@@ -5,7 +5,6 @@ import (
 	"atlas-clc/packets/inputs"
 	"atlas-clc/packets/outputs/writers"
 	"atlas-clc/processors"
-	"atlas-clc/registries"
 	"atlas-clc/sessions"
 	"log"
 )
@@ -13,14 +12,11 @@ import (
 type ViewAllCharactersHandler struct {
 }
 
-func (h *ViewAllCharactersHandler) Handle(l *log.Logger, sessionId int, _ *inputs.Reader) {
-	s := registries.GetSessionRegistry().GetSession(sessionId)
-	if s != nil {
-		h.handle(l, s)
-	}
+func (h *ViewAllCharactersHandler) IsValid(l *log.Logger, s *sessions.Session) bool {
+	return processors.IsLoggedIn(l, s.AccountId())
 }
 
-func (h *ViewAllCharactersHandler) handle(l *log.Logger, s *sessions.Session) {
+func (h *ViewAllCharactersHandler) Handle(l *log.Logger, s *sessions.Session, _ *inputs.Reader) {
 	ws, err := processors.GetWorlds(l)
 	if err != nil {
 		l.Println("[ERROR] unable to retrieve worlds")

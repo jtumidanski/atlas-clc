@@ -3,11 +3,15 @@ package handlers
 import (
 	"atlas-clc/packets/inputs"
 	"atlas-clc/packets/inputs/constants"
+	"atlas-clc/registries"
+	"atlas-clc/sessions"
 	"log"
 )
 
 type Handler interface {
-	Handle(l *log.Logger, sessionId int, r *inputs.Reader)
+	IsValid(l *log.Logger, s *sessions.Session) bool
+
+	Handle(l *log.Logger, s *sessions.Session, r *inputs.Reader)
 }
 
 type Handle struct {
@@ -17,7 +21,14 @@ type Handle struct {
 }
 
 func (h *Handle) Handle(sessionId int, r *inputs.Reader) {
-	h.h.Handle(h.l, sessionId, r)
+	s := registries.GetSessionRegistry().GetSession(sessionId)
+	if s != nil {
+		if h.h.IsValid(h.l, s) {
+			h.h.Handle(h.l, s, r)
+		}
+	} else {
+		h.l.Printf("[ERROR] unable to locate session %d", sessionId)
+	}
 }
 
 func GetHandle(l *log.Logger, op uint16) *Handle {

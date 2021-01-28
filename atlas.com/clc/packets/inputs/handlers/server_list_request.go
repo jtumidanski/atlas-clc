@@ -5,7 +5,6 @@ import (
 	"atlas-clc/packets/inputs"
 	"atlas-clc/packets/outputs/writers"
 	"atlas-clc/processors"
-	"atlas-clc/registries"
 	"atlas-clc/sessions"
 	"log"
 )
@@ -13,14 +12,11 @@ import (
 type ServerListRequestHandler struct {
 }
 
-func (h *ServerListRequestHandler) Handle(l *log.Logger, sessionId int, _ *inputs.Reader) {
-	s := registries.GetSessionRegistry().GetSession(sessionId)
-	if s != nil {
-		h.handle(l, s)
-	}
+func (h *ServerListRequestHandler) IsValid(l *log.Logger, s *sessions.Session) bool {
+	return processors.IsLoggedIn(l, s.AccountId())
 }
 
-func (h *ServerListRequestHandler) handle(l *log.Logger, s *sessions.Session) {
+func (h *ServerListRequestHandler) Handle(l *log.Logger, s *sessions.Session, _ *inputs.Reader) {
 	ws, err := processors.GetWorlds(l)
 	if err != nil {
 		l.Println("[ERROR] retrieving worlds")

@@ -1,13 +1,12 @@
 package handlers
 
 import (
-	models2 "atlas-clc/models"
+	status "atlas-clc/models"
 	"atlas-clc/packets/inputs"
 	"atlas-clc/packets/inputs/models"
 	"atlas-clc/packets/inputs/readers"
 	"atlas-clc/packets/outputs/writers"
 	"atlas-clc/processors"
-	"atlas-clc/registries"
 	"atlas-clc/sessions"
 	"log"
 )
@@ -15,13 +14,14 @@ import (
 type CharacterListRequestHandler struct {
 }
 
-func (h *CharacterListRequestHandler) Handle(l *log.Logger, sessionId int, r *inputs.Reader) {
-	s := registries.GetSessionRegistry().GetSession(sessionId)
-	if s != nil {
-		p := readers.ReadCharacterListRequest(r)
-		if p != nil {
-			h.handle(l, s, p)
-		}
+func (h *CharacterListRequestHandler) IsValid(l *log.Logger, s *sessions.Session) bool {
+	return processors.IsLoggedIn(l, s.AccountId())
+}
+
+func (h *CharacterListRequestHandler) Handle(l *log.Logger, s *sessions.Session, r *inputs.Reader) {
+	p := readers.ReadCharacterListRequest(r)
+	if p != nil {
+		h.handle(l, s, p)
 	}
 }
 
@@ -32,8 +32,8 @@ func (h *CharacterListRequestHandler) handle(l *log.Logger, s *sessions.Session,
 		return
 	}
 
-	if w.CapacityStatus() == models2.Full {
-		s.Announce(writers.WriteWorldCapacityStatus(models2.Full))
+	if w.CapacityStatus() == status.Full {
+		s.Announce(writers.WriteWorldCapacityStatus(status.Full))
 		return
 	}
 

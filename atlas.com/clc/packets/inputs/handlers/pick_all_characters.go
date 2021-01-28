@@ -7,7 +7,6 @@ import (
 	"atlas-clc/packets/inputs/readers"
 	"atlas-clc/packets/outputs/writers"
 	"atlas-clc/processors"
-	"atlas-clc/registries"
 	"atlas-clc/sessions"
 	"log"
 	"math/rand"
@@ -17,13 +16,14 @@ import (
 type PickAllCharactersHandler struct {
 }
 
-func (h *PickAllCharactersHandler) Handle(l *log.Logger, sessionId int, r *inputs.Reader) {
-	s := registries.GetSessionRegistry().GetSession(sessionId)
-	if s != nil {
-		p := readers.ReadViewAllCharactersSelected(r)
-		if p != nil {
-			h.handle(l, s, p)
-		}
+func (h *PickAllCharactersHandler) IsValid(l *log.Logger, s *sessions.Session) bool {
+	return processors.IsLoggedIn(l, s.AccountId())
+}
+
+func (h *PickAllCharactersHandler) Handle(l *log.Logger, s *sessions.Session, r *inputs.Reader) {
+	p := readers.ReadViewAllCharactersSelected(r)
+	if p != nil {
+		h.handle(l, s, p)
 	}
 }
 

@@ -6,7 +6,6 @@ import (
 	"atlas-clc/packets/inputs/readers"
 	"atlas-clc/packets/outputs/writers"
 	"atlas-clc/processors"
-	"atlas-clc/registries"
 	"atlas-clc/sessions"
 	"log"
 )
@@ -14,13 +13,14 @@ import (
 type CheckCharacterNameHandler struct {
 }
 
-func (h *CheckCharacterNameHandler) Handle(l *log.Logger, sessionId int, r *inputs.Reader) {
-	s := registries.GetSessionRegistry().GetSession(sessionId)
-	if s != nil {
-		p := readers.ReadCheckCharacterName(r)
-		if p != nil {
-			h.handle(l, s, p)
-		}
+func (h *CheckCharacterNameHandler) IsValid(l *log.Logger, s *sessions.Session) bool {
+	return processors.IsLoggedIn(l, s.AccountId())
+}
+
+func (h *CheckCharacterNameHandler) Handle(l *log.Logger, s *sessions.Session, r *inputs.Reader) {
+	p := readers.ReadCheckCharacterName(r)
+	if p != nil {
+		h.handle(l, s, p)
 	}
 }
 

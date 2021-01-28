@@ -36,6 +36,10 @@ func (a *Account) CharacterSlots() int16 {
 	return a.characterSlots
 }
 
+func (a *Account) LoggedIn() int {
+	return a.loggedIn
+}
+
 type accountBuilder struct {
 	id             int
 	name           string
