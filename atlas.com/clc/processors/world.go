@@ -1,20 +1,19 @@
 package processors
 
 import (
-	"atlas-clc/models"
+	"atlas-clc/domain"
 	"atlas-clc/rest/attributes"
 	"atlas-clc/rest/requests"
-	"log"
 	"strconv"
 )
 
-func GetWorlds(l *log.Logger) ([]models.World, error) {
-	r, err := requests.GetWorlds(l)
+func GetWorlds() ([]domain.World, error) {
+	r, err := requests.GetWorlds()
 	if err != nil {
 		return nil, err
 	}
 
-	var ws = make([]models.World, 0)
+	var ws = make([]domain.World, 0)
 	for _, x := range r.DataList() {
 		w, err := makeWorld(x)
 		if err == nil {
@@ -24,8 +23,8 @@ func GetWorlds(l *log.Logger) ([]models.World, error) {
 	return ws, nil
 }
 
-func GetWorld(l *log.Logger, worldId byte) (*models.World, error) {
-	r, err := requests.GetWorld(l, worldId)
+func GetWorld(worldId byte) (*domain.World, error) {
+	r, err := requests.GetWorld(worldId)
 	if err != nil {
 		return nil, err
 	}
@@ -33,14 +32,14 @@ func GetWorld(l *log.Logger, worldId byte) (*models.World, error) {
 	return makeWorld(*r.Data())
 }
 
-func makeWorld(data attributes.WorldData) (*models.World, error) {
+func makeWorld(data attributes.WorldData) (*domain.World, error) {
 	wid, err := strconv.Atoi(data.Id)
 	if err != nil {
 		return nil, err
 	}
 
 	att := data.Attributes
-	return models.NewWorldBuilder().
+	return domain.NewWorldBuilder().
 		SetId(byte(wid)).
 		SetName(att.Name).
 		SetFlag(att.Flag).
@@ -52,11 +51,10 @@ func makeWorld(data attributes.WorldData) (*models.World, error) {
 		Build(), nil
 }
 
-func GetWorldCapacityStatus(l *log.Logger, worldId byte) uint16 {
-	w, err := GetWorld(l, worldId)
+func GetWorldCapacityStatus(worldId byte) uint16 {
+	w, err := GetWorld(worldId)
 	if err != nil {
-		l.Println("[WARN] error deciding capacity status, will return full")
-		return models.Full
+		return domain.Full
 	}
 	return w.CapacityStatus()
 }

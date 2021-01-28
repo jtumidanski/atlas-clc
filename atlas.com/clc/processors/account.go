@@ -1,15 +1,14 @@
 package processors
 
 import (
-	"atlas-clc/models"
+	"atlas-clc/domain"
 	"atlas-clc/rest/attributes"
 	"atlas-clc/rest/requests"
-	"log"
 	"strconv"
 )
 
-func GetAccountByName(l *log.Logger, name string) (*models.Account, error) {
-	a, err := requests.GetAccountByName(l, name)
+func GetAccountByName(name string) (*domain.Account, error) {
+	a, err := requests.GetAccountByName(name)
 	if err != nil {
 		return nil, err
 	}
@@ -23,8 +22,8 @@ func GetAccountByName(l *log.Logger, name string) (*models.Account, error) {
 	return makeAccount(aid, d.Attributes), nil
 }
 
-func GetAccountById(l *log.Logger, id int) (*models.Account, error) {
-	a, err := requests.GetAccountById(l, id)
+func GetAccountById(id int) (*domain.Account, error) {
+	a, err := requests.GetAccountById(id)
 	if err != nil {
 		return nil, err
 	}
@@ -38,8 +37,8 @@ func GetAccountById(l *log.Logger, id int) (*models.Account, error) {
 	return makeAccount(aid, d.Attributes), nil
 }
 
-func IsLoggedIn(l *log.Logger, id int) bool {
-	a, err := GetAccountById(l,id)
+func IsLoggedIn(id int) bool {
+	a, err := GetAccountById(id)
 	if err != nil {
 		return false
 	} else if a.LoggedIn() != 0 {
@@ -49,8 +48,8 @@ func IsLoggedIn(l *log.Logger, id int) bool {
 	}
 }
 
-func makeAccount(aid int, att attributes.AccountAttributes) *models.Account {
-	return models.NewAccountBuilder().
+func makeAccount(aid int, att attributes.AccountAttributes) *domain.Account {
+	return domain.NewAccountBuilder().
 		SetId(aid).
 		SetPassword(att.Password).
 		SetPin(att.Pin).

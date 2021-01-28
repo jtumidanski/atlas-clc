@@ -1,29 +1,48 @@
 package main
 
 import (
-   "atlas-clc/servers/rest"
-   "atlas-clc/servers/socket"
-   "log"
-   "os"
-   "os/signal"
-   "syscall"
+	"atlas-clc/registries"
+	rest2 "atlas-clc/rest"
+	sessions2 "atlas-clc/sessions"
+	"atlas-clc/socket"
+	"atlas-clc/tasks"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
-
 func main() {
-   l := log.New(os.Stdout, "clc ", log.LstdFlags|log.Lmicroseconds)
+	l := log.New(os.Stdout, "clc ", log.LstdFlags|log.Lmicroseconds)
 
-   ss := socket.NewServer(l)
-   go ss.Run()
+	config, err := registries.GetConfiguration()
+	if err != nil {
+		l.Fatal("[ERROR] Unable to successfully load configuration.")
+	}
 
-   hs := rest.NewServer(l)
-   go hs.Run()
+	ss, err := socket.NewServer(l, sessions2.NewSessionService(l), socket.IpAddress("0.0.0.0"), socket.Port(8484))
+	if err != nil {
+		return
+	}
+	go ss.Run()
 
-   // trap sigterm or interrupt and gracefully shutdown the server
-   c := make(chan os.Signal, 1)
-   signal.Notify(c, os.Interrupt, os.Kill, syscall.SIGTERM)
+	hs := rest2.NewServer(l)
+	go hs.Run()
 
-   // Block until a signal is received.
-   sig := <-c
-   l.Println("Got signal:", sig)
+	go tasks.Register(tasks.NewTimeout(l, time.Second*time.Duration(config.TimeoutTaskInterval)))
+
+	// trap sigterm or interrupt and gracefully shutdown the server
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, os.Kill, syscall.SIGTERM)
+
+	// Block until a signal is received.
+	sig := <-c
+	l.Println("[INFO] Shutting down via signal:", sig)
+
+	sessions := registries.GetSessionRegistry().GetAll()
+	for _, s := range sessions {
+		socket.Disconnect(l, &s)
+		s.Disconnect()
+	}
 }

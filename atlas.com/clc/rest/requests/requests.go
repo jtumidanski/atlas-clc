@@ -4,8 +4,6 @@ import (
 	"atlas-clc/rest/attributes"
 	"bytes"
 	"encoding/json"
-	"errors"
-	"log"
 	"net/http"
 )
 
@@ -13,61 +11,54 @@ const (
 	BaseRequest string = "http://atlas-nginx:80"
 )
 
-func Get(l *log.Logger, url string, resp interface{}) error {
+func Get(url string, resp interface{}) error {
 	r, err := http.Get(url)
 	if err != nil {
-		l.Printf("[ERROR] dispatching [GET] to %s", url)
-		return errors.New("error dispatching get to url")
+		return err
 	}
 
-	err = ProcessResponse(l, r, resp)
+	err = ProcessResponse(r, resp)
 	return err
 }
 
-func Post(l *log.Logger, url string, input interface{}) (*http.Response, error) {
+func Post(url string, input interface{}) (*http.Response, error) {
 	jsonReq, err := json.Marshal(input)
 	if err != nil {
-		l.Println("[ERROR] marshalling post body.")
-		return nil, errors.New("error marshalling post body")
+		return nil, err
 	}
 
 	r, err := http.Post(url, "application/json; charset=utf-8", bytes.NewReader(jsonReq))
 	if err != nil {
-		l.Printf("[ERROR] dispatching [POST] to %s", url)
-		return nil, errors.New("error dispatching post to url")
+		return nil, err
 	}
 	return r, nil
 }
 
-func Delete(l *log.Logger, url string) (*http.Response, error) {
+func Delete(url string) (*http.Response, error) {
 	client := &http.Client{}
 	r, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
-		l.Printf("[ERROR] dispatching [DELETE] to %s", url)
-		return nil, errors.New("error dispatching delete to url")
+		return nil, err
 	}
 	r.Header.Set("Content-Type", "application/json")
 
 	return client.Do(r)
 }
 
-func ProcessResponse(l *log.Logger, r *http.Response, rb interface{}) error {
+func ProcessResponse(r *http.Response, rb interface{}) error {
 	err := attributes.FromJSON(rb, r.Body)
 	if err != nil {
-		l.Printf("[ERROR] decoding response")
 		return err
 	}
 
 	return nil
 }
 
-func ProcessErrorResponse(l *log.Logger, r *http.Response, eb interface{}) error {
+func ProcessErrorResponse(r *http.Response, eb interface{}) error {
 	if r.ContentLength > 0 {
 		err := attributes.FromJSON(eb, r.Body)
 		if err != nil {
-			l.Printf("[ERROR] decoding error response")
-			l.Println(err)
-			return errors.New("error decoding error response")
+			return err
 		}
 		return nil
 	} else {

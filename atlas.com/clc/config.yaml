@@ -1,0 +1,2 @@
+timeoutTaskInterval: 10000 # Interval at which the timeout task executes (in milliseconds).
+timeoutDuration: 3600000  # Kicks clients who don't send any packet to the game server in due time (in milliseconds).

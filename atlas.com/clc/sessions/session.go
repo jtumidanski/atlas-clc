@@ -1,22 +1,30 @@
 package sessions
 
 import (
-	"atlas-clc/crypto"
-	"atlas-clc/packets/outputs/writers"
+	"atlas-clc/socket"
+	"atlas-clc/socket/crypto"
+	"atlas-clc/socket/response/writer"
 	"log"
 	"math/rand"
 	"net"
+	"time"
 )
 
-type Session struct {
-	id        int
-	accountId int
-	worldId   byte
-	channelId byte
-	con       net.Conn
-	l         *log.Logger
-	send      crypto.AESOFB
-	recv      crypto.AESOFB
+type Session interface {
+	SessionId() int
+	socket.SocketSession
+}
+
+type session struct {
+	id         int
+	accountId  int
+	worldId    byte
+	channelId  byte
+	con        net.Conn
+	l          *log.Logger
+	send       crypto.AESOFB
+	recv       crypto.AESOFB
+	lastPacket time.Time
 }
 
 const (
@@ -30,22 +38,22 @@ func NewSession(id int, con *net.Conn, l *log.Logger) *Session {
 	sendIv[3] = byte(rand.Float64() * 255)
 	send := crypto.NewAESOFB(sendIv, uint16(65535)-version)
 	recv := crypto.NewAESOFB(recvIv, version)
-	return &Session{id, -1, 0, 0, *con, l, *send, *recv}
+	return session{id, -1, 0, 0, *con, l, *send, *recv, time.Now()}
 }
 
-func (s *Session) SetAccountId(accountId int) {
+func (s *session) SetAccountId(accountId int) {
 	s.accountId = accountId
 }
 
-func (s *Session) SessionId() int {
+func (s *session) SessionId() int {
 	return s.id
 }
 
-func (s *Session) AccountId() int {
+func (s *session) AccountId() int {
 	return s.accountId
 }
 
-func (s *Session) Announce(b []byte) {
+func (s *session) Announce(b []byte) {
 	tmp := make([]byte, len(b)+4)
 	copy(tmp, b)
 	tmp = append([]byte{0, 0, 0, 0}, b...)
@@ -56,37 +64,49 @@ func (s *Session) Announce(b []byte) {
 	}
 }
 
-func (s *Session) announce(b []byte) {
+func (s *session) announce(b []byte) {
 	_, err := s.con.Write(b)
 	if err != nil {
 		s.l.Fatal("[ERROR] Writing bytes to connection")
 	}
 }
 
-func (s *Session) WriteHello() {
-	s.announce(writers.WriteHello(version, s.send.IV(), s.recv.IV()))
+func (s *session) WriteHello() {
+	s.announce(writer.WriteHello(version, s.send.IV(), s.recv.IV()))
 }
 
-func (s *Session) GetRecv() *crypto.AESOFB {
+func (s *session) GetRecv() *crypto.AESOFB {
 	return &s.recv
 }
 
-func (s *Session) GetRemoteAddress() net.Addr {
+func (s *session) GetRemoteAddress() net.Addr {
 	return s.con.RemoteAddr()
 }
 
-func (s *Session) SetWorldId(worldId byte) {
+func (s *session) SetWorldId(worldId byte) {
 	s.worldId = worldId
 }
 
-func (s *Session) SetChannelId(channelId byte) {
+func (s *session) SetChannelId(channelId byte) {
 	s.channelId = channelId
 }
 
-func (s *Session) WorldId() byte {
+func (s *session) WorldId() byte {
 	return s.worldId
 }
 
-func (s *Session) ChannelId() byte {
+func (s *session) ChannelId() byte {
 	return s.channelId
+}
+
+func (s *session) UpdateLastPacket() {
+	s.lastPacket = time.Now()
+}
+
+func (s *session) LastPacket() time.Time {
+	return s.lastPacket
+}
+
+func (s *session) Disconnect() {
+	_ = s.con.Close()
 }

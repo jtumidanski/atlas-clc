@@ -1,29 +1,45 @@
 package resources
 
 import (
-	"atlas-clc/packets/outputs/writers"
 	"atlas-clc/registries"
 	"atlas-clc/rest/attributes"
 	"atlas-clc/sessions"
+	"atlas-clc/socket/response/writer"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"strconv"
 )
 
-type Session struct {
+type SessionListDataContainer struct {
+	Data []SessionData `json:"data"`
+}
+
+type SessionData struct {
+	Id         string            `json:"id"`
+	Type       string            `json:"type"`
+	Attributes SessionAttributes `json:"attributes"`
+}
+
+type SessionAttributes struct {
+	AccountId int  `json:"accountId"`
+	WorldId   byte `json:"worldId"`
+	ChannelId byte `json:"channelId"`
+}
+
+type SessionResource struct {
 	l *log.Logger
 }
 
-func NewSession(l *log.Logger) *Session {
-	return &Session{l}
+func NewSessionResource(l *log.Logger) *SessionResource {
+	return &SessionResource{l}
 }
 
-func (s *Session) GetSessions(rw http.ResponseWriter, _ *http.Request) {
-	ss := registries.GetSessionRegistry().GetSessions()
+func (s *SessionResource) GetSessions(rw http.ResponseWriter, _ *http.Request) {
+	ss := registries.GetSessionRegistry().GetAll()
 
-	var response attributes.SessionListDataContainer
-	response.Data = make([]attributes.SessionData, 0)
+	var response SessionListDataContainer
+	response.Data = make([]SessionData, 0)
 	for _, x := range ss {
 		response.Data = append(response.Data, *getSessionObject(x))
 	}
@@ -35,13 +51,13 @@ func (s *Session) GetSessions(rw http.ResponseWriter, _ *http.Request) {
 	}
 }
 
-func (s *Session) LoginError(rw http.ResponseWriter, r *http.Request) {
+func (s *SessionResource) LoginError(rw http.ResponseWriter, r *http.Request) {
 	sessionId := getSessionId(r)
 	errorId := getErrorId(r)
 
-	ses := registries.GetSessionRegistry().GetSession(sessionId)
+	ses := registries.GetSessionRegistry().Get(sessionId)
 	if ses != nil {
-		ses.Announce(writers.WriteLoginFailed(errorId))
+		ses.Announce(writer.WriteLoginFailed(errorId))
 		rw.WriteHeader(http.StatusNoContent)
 	} else {
 		rw.WriteHeader(http.StatusNotFound)
@@ -68,14 +84,14 @@ func getErrorId(r *http.Request) byte {
 	return byte(value)
 }
 
-func getSessionObject(x sessions.Session) *attributes.SessionData {
-	return &attributes.SessionData{
+func getSessionObject(x sessions.Session) *SessionData {
+	return &SessionData{
 		Id:   strconv.Itoa(x.SessionId()),
 		Type: "Session",
-		Attributes: attributes.SessionAttributes{
+		Attributes: SessionAttributes{
 			AccountId: x.AccountId(),
 			WorldId:   x.WorldId(),
 			ChannelId: x.ChannelId(),
-        },
+		},
 	}
 }

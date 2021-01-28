@@ -3,7 +3,6 @@ package requests
 import (
 	"atlas-clc/rest/attributes"
 	"fmt"
-	"log"
 )
 
 const (
@@ -18,43 +17,43 @@ const (
 	CharacterSeeds                     = CharactersResource + "seeds/"
 )
 
-func GetCharacterAttributesByName(l *log.Logger, name string) (*attributes.CharacterAttributesDataContainer, error) {
+func GetCharacterAttributesByName(name string) (*attributes.CharacterAttributesDataContainer, error) {
 	ar := &attributes.CharacterAttributesDataContainer{}
-	err := Get(l, fmt.Sprintf(CharactersByName, name), ar)
+	err := Get(fmt.Sprintf(CharactersByName, name), ar)
 	if err != nil {
 		return nil, err
 	}
 	return ar, nil
 }
 
-func GetCharacterAttributesForAccountByWorld(l *log.Logger, accountId int, worldId byte) (*attributes.CharacterAttributesDataContainer, error) {
+func GetCharacterAttributesForAccountByWorld(accountId int, worldId byte) (*attributes.CharacterAttributesDataContainer, error) {
 	ar := &attributes.CharacterAttributesDataContainer{}
-	err := Get(l, fmt.Sprintf(CharactersForAccountByWorld, accountId, worldId), ar)
+	err := Get(fmt.Sprintf(CharactersForAccountByWorld, accountId, worldId), ar)
 	if err != nil {
 		return nil, err
 	}
 	return ar, nil
 }
 
-func GetCharacterAttributesById(l *log.Logger, characterId uint32) (*attributes.CharacterAttributesDataContainer, error) {
+func GetCharacterAttributesById(characterId uint32) (*attributes.CharacterAttributesDataContainer, error) {
 	ar := &attributes.CharacterAttributesDataContainer{}
-	err := Get(l, fmt.Sprintf(CharactersById, characterId), ar)
+	err := Get(fmt.Sprintf(CharactersById, characterId), ar)
 	if err != nil {
 		return nil, err
 	}
 	return ar, nil
 }
 
-func GetEquippedItemsForCharacter(l *log.Logger, characterId uint32) (*attributes.InventoryDataContainer, error) {
+func GetEquippedItemsForCharacter(characterId uint32) (*attributes.InventoryDataContainer, error) {
 	ar := &attributes.InventoryDataContainer{}
-	err := Get(l, fmt.Sprintf(CharacterEquippedItems, characterId), ar)
+	err := Get(fmt.Sprintf(CharacterEquippedItems, characterId), ar)
 	if err != nil {
 		return nil, err
 	}
 	return ar, nil
 }
 
-func SeedCharacter(l *log.Logger, accountId int, worldId byte, name string, job uint32, face uint32, hair uint32, color uint32, skinColor uint32, gender byte, top uint32, bottom uint32, shoes uint32, weapon uint32) (*attributes.CharacterAttributesData, error) {
+func SeedCharacter(accountId int, worldId byte, name string, job uint32, face uint32, hair uint32, color uint32, skinColor uint32, gender byte, top uint32, bottom uint32, shoes uint32, weapon uint32) (*attributes.CharacterAttributesData, error) {
 	i := attributes.CharacterSeedAttributesInputDataContainer{
 		Data: attributes.CharacterSeedAttributesData{
 			Id:   "0",
@@ -77,13 +76,13 @@ func SeedCharacter(l *log.Logger, accountId int, worldId byte, name string, job 
 		},
 	}
 
-	r, err := Post(l, CharacterSeeds, i)
+	r, err := Post(CharacterSeeds, i)
 	if err != nil {
 		return nil, err
 	}
 
 	ca := &attributes.CharacterAttributesDataContainer{}
-	err = ProcessResponse(l, r, ca)
+	err = ProcessResponse(r, ca)
 	if err != nil {
 		return nil, err
 	}
