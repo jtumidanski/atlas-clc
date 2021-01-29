@@ -1,12 +1,12 @@
 package handler
 
 import (
+	"atlas-clc/mapleSession"
 	"atlas-clc/processors"
 	"atlas-clc/rest/attributes"
 	"atlas-clc/rest/requests"
-	"atlas-clc/sessions"
-	"atlas-clc/socket/request"
 	"atlas-clc/socket/response/writer"
+	"github.com/jtumidanski/atlas-socket/request"
 	"log"
 	"net/http"
 	"strconv"
@@ -43,17 +43,17 @@ func ReadLoginRequest(reader *request.RequestReader) *LoginRequest {
 type LoginHandler struct {
 }
 
-func (h *LoginHandler) IsValid(_ *log.Logger, _ *sessions.Session) bool {
+func (h *LoginHandler) IsValid(_ *log.Logger, _ *mapleSession.MapleSession) bool {
 	return true
 }
 
-func (h *LoginHandler) HandleRequest(l *log.Logger, s *sessions.Session, r *request.RequestReader) {
+func (h *LoginHandler) HandleRequest(_ *log.Logger, ms *mapleSession.MapleSession, r *request.RequestReader) {
 	p := ReadLoginRequest(r)
 
-	ip := s.GetRemoteAddress().String()
-	resp, err := requests.CreateLogin(s.SessionId(), p.Login(), p.Password(), ip)
+	ip := (*ms).GetRemoteAddress().String()
+	resp, err := requests.CreateLogin((*ms).SessionId(), p.Login(), p.Password(), ip)
 	if err != nil {
-		h.announceSystemError(s)
+		h.announceSystemError(ms)
 		return
 	}
 
@@ -61,60 +61,60 @@ func (h *LoginHandler) HandleRequest(l *log.Logger, s *sessions.Session, r *requ
 		eb := &attributes.ErrorListDataContainer{}
 		err = requests.ProcessErrorResponse(resp, eb)
 		if err != nil {
-			h.announceSystemError(s)
+			h.announceSystemError(ms)
 			return
 		}
 
 		if len(eb.Errors) > 0 {
-			h.processFirstError(s, eb.Errors[0])
+			h.processFirstError(ms, eb.Errors[0])
 			return
 		}
 
-		h.announceSystemError(s)
+		h.announceSystemError(ms)
 		return
 	}
 
-	h.authorizeSuccess(l, s, p.Login())
+	h.authorizeSuccess(ms, p.Login())
 }
 
-func (h *LoginHandler) authorizeSuccess(l *log.Logger, s *sessions.Session, name string) {
+func (h *LoginHandler) authorizeSuccess(ms *mapleSession.MapleSession, name string) {
 	a, err := processors.GetAccountByName(name)
 	if err == nil {
-		s.SetAccountId(a.Id())
-		s.Announce(writer.WriteAuthSuccess(a.Id(), a.Name(), a.Gender(), a.PIC()))
+		(*ms).SetAccountId(a.Id())
+		(*ms).Announce(writer.WriteAuthSuccess(a.Id(), a.Name(), a.Gender(), a.PIC()))
 	}
 }
 
-func (h *LoginHandler) announceSystemError(s *sessions.Session) {
-	s.Announce(writer.WriteLoginFailed(SystemError))
+func (h *LoginHandler) announceSystemError(ms *mapleSession.MapleSession) {
+	(*ms).Announce(writer.WriteLoginFailed(SystemError))
 }
 
-func (h LoginHandler) processFirstError(s *sessions.Session, data attributes.ErrorData) {
+func (h LoginHandler) processFirstError(ms *mapleSession.MapleSession, data attributes.ErrorData) {
 	r := GetLoginFailedReason(data.Code)
 	if r == DeletedOrBlocked {
 		if data.Detail == "" {
-			s.Announce(writer.WriteLoginFailed(DeletedOrBlocked))
+			(*ms).Announce(writer.WriteLoginFailed(DeletedOrBlocked))
 			return
 		}
 
 		reason := data.Meta["reason"]
 		rc, err := strconv.ParseUint(reason, 10, 8)
 		if err != nil {
-			s.Announce(writer.WriteLoginFailed(SystemError))
+			(*ms).Announce(writer.WriteLoginFailed(SystemError))
 			return
 		}
 
 		if tb, ok := data.Meta["tempBan"]; ok {
 			until, err := strconv.ParseUint(tb, 10, 64)
 			if err != nil {
-				s.Announce(writer.WriteLoginFailed(SystemError))
+				(*ms).Announce(writer.WriteLoginFailed(SystemError))
 				return
 			}
-			s.Announce(writer.WriteTemporaryBan(until, byte(rc)))
+			(*ms).Announce(writer.WriteTemporaryBan(until, byte(rc)))
 			return
 		}
-		s.Announce(writer.WritePermanentBan())
+		(*ms).Announce(writer.WritePermanentBan())
 		return
 	}
-	s.Announce(writer.WriteLoginFailed(r))
+	(*ms).Announce(writer.WriteLoginFailed(r))
 }

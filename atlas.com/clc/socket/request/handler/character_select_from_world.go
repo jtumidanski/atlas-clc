@@ -2,10 +2,10 @@ package handler
 
 import (
 	models2 "atlas-clc/domain"
+	"atlas-clc/mapleSession"
 	"atlas-clc/processors"
-	"atlas-clc/sessions"
-	"atlas-clc/socket/request"
 	"atlas-clc/socket/response/writer"
+	"github.com/jtumidanski/atlas-socket/request"
 	"log"
 )
 
@@ -32,15 +32,15 @@ func ReadCharacterSelectFromWorldRequest(reader *request.RequestReader) *Charact
 type CharacterSelectFromWorldHandler struct {
 }
 
-func (h *CharacterSelectFromWorldHandler) IsValid(l *log.Logger, s *sessions.Session) bool {
-	v := processors.IsLoggedIn(s.AccountId())
+func (h *CharacterSelectFromWorldHandler) IsValid(l *log.Logger, ms *mapleSession.MapleSession) bool {
+	v := processors.IsLoggedIn((*ms).AccountId())
 	if !v {
-		l.Printf("[ERROR] attempting to process a [CharacterSelectFromWorldRequest] when the account %d is not logged in.", s.SessionId())
+		l.Printf("[ERROR] attempting to process a [CharacterSelectFromWorldRequest] when the account %d is not logged in.", (*ms).SessionId())
 	}
 	return v
 }
 
-func (h *CharacterSelectFromWorldHandler) HandleRequest(l *log.Logger, s *sessions.Session, r *request.RequestReader) {
+func (h *CharacterSelectFromWorldHandler) HandleRequest(l *log.Logger, ms *mapleSession.MapleSession, r *request.RequestReader) {
 	p := ReadCharacterSelectFromWorldRequest(r)
 
 	c, err := processors.GetCharacterById(uint32(p.CharacterId()))
@@ -49,7 +49,7 @@ func (h *CharacterSelectFromWorldHandler) HandleRequest(l *log.Logger, s *sessio
 		return
 	}
 
-	w, err := processors.GetWorld(s.WorldId())
+	w, err := processors.GetWorld((*ms).WorldId())
 	if err != nil {
 		l.Println("[ERROR] unable to retrieve world logged into by session")
 		return
@@ -60,11 +60,11 @@ func (h *CharacterSelectFromWorldHandler) HandleRequest(l *log.Logger, s *sessio
 		return
 	}
 
-	ch, err := processors.GetChannelForWorld(s.WorldId(), s.ChannelId())
+	ch, err := processors.GetChannelForWorld((*ms).WorldId(), (*ms).ChannelId())
 	if err != nil {
 		l.Println("[ERROR] unable to retrieve channel in world")
 		return
 	}
 
-	s.Announce(writer.WriteServerIp(ch.IpAddress(), ch.Port(), c.Attributes().Id()))
+	(*ms).Announce(writer.WriteServerIp(ch.IpAddress(), ch.Port(), c.Attributes().Id()))
 }

@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"atlas-clc/sessions"
-	"atlas-clc/socket/request"
+	"atlas-clc/mapleSession"
+	"github.com/jtumidanski/atlas-socket/request"
 	"log"
 )
 
@@ -11,9 +11,9 @@ const OpCodePong uint16 = 0x18
 type PongHandler struct {
 }
 
-func (h *PongHandler) IsValid(_ *log.Logger, _ *sessions.Session) bool {
+func (h *PongHandler) IsValid(_ *log.Logger, _ *mapleSession.MapleSession) bool {
 	return true
 }
 
-func (h *PongHandler) HandleRequest(_ *log.Logger, _ *sessions.Session, _ *request.RequestReader) {
+func (h *PongHandler) HandleRequest(_ *log.Logger, _ *mapleSession.MapleSession, _ *request.RequestReader) {
 }

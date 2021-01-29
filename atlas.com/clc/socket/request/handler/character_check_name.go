@@ -1,10 +1,10 @@
 package handler
 
 import (
+	"atlas-clc/mapleSession"
 	"atlas-clc/processors"
-	"atlas-clc/sessions"
-	"atlas-clc/socket/request"
 	"atlas-clc/socket/response/writer"
+	"github.com/jtumidanski/atlas-socket/request"
 	"log"
 )
 
@@ -26,21 +26,21 @@ func ReadCharacterCheckNameRequest(reader *request.RequestReader) *CharacterChec
 type CharacterCheckNameHandler struct {
 }
 
-func (h *CharacterCheckNameHandler) IsValid(l *log.Logger, s *sessions.Session) bool {
-	v := processors.IsLoggedIn(s.AccountId())
+func (h *CharacterCheckNameHandler) IsValid(l *log.Logger, ms *mapleSession.MapleSession) bool {
+	v := processors.IsLoggedIn((*ms).AccountId())
 	if !v {
-		l.Printf("[ERROR] attempting to process a [CharacterCheckNameRequest] when the account %d is not logged in.", s.SessionId())
+		l.Printf("[ERROR] attempting to process a [CharacterCheckNameRequest] when the account %d is not logged in.", (*ms).SessionId())
 	}
 	return v
 }
 
-func (h *CharacterCheckNameHandler) HandleRequest(l *log.Logger, s *sessions.Session, r *request.RequestReader) {
+func (h *CharacterCheckNameHandler) HandleRequest(l *log.Logger, ms *mapleSession.MapleSession, r *request.RequestReader) {
 	p := ReadCharacterCheckNameRequest(r)
 
 	v, err := processors.IsValidName(p.Name())
 	if err != nil {
 		l.Println("[ERROR] validating character name on creation")
-		s.Announce(writer.WriteCharacterNameCheckResponse(p.Name(), true))
+		(*ms).Announce(writer.WriteCharacterNameCheckResponse(p.Name(), true))
 	}
-	s.Announce(writer.WriteCharacterNameCheckResponse(p.Name(), !v))
+	(*ms).Announce(writer.WriteCharacterNameCheckResponse(p.Name(), !v))
 }

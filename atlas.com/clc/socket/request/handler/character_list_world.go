@@ -2,10 +2,10 @@ package handler
 
 import (
 	status "atlas-clc/domain"
+	"atlas-clc/mapleSession"
 	"atlas-clc/processors"
-	"atlas-clc/sessions"
-	"atlas-clc/socket/request"
 	"atlas-clc/socket/response/writer"
+	"github.com/jtumidanski/atlas-socket/request"
 	"log"
 )
 
@@ -35,15 +35,15 @@ func ReadCharacterListWorldRequest(reader *request.RequestReader) *CharacterList
 type CharacterListWorldHandler struct {
 }
 
-func (h *CharacterListWorldHandler) IsValid(l *log.Logger, s *sessions.Session) bool {
-	v := processors.IsLoggedIn(s.AccountId())
+func (h *CharacterListWorldHandler) IsValid(l *log.Logger, ms *mapleSession.MapleSession) bool {
+	v := processors.IsLoggedIn((*ms).AccountId())
 	if !v {
-		l.Printf("[ERROR] attempting to process a [CharacterListWorldRequest] when the account %d is not logged in.", s.SessionId())
+		l.Printf("[ERROR] attempting to process a [CharacterListWorldRequest] when the account %d is not logged in.", (*ms).SessionId())
 	}
 	return v
 }
 
-func (h *CharacterListWorldHandler) HandleRequest(l *log.Logger, s *sessions.Session, r *request.RequestReader) {
+func (h *CharacterListWorldHandler) HandleRequest(l *log.Logger, ms *mapleSession.MapleSession, r *request.RequestReader) {
 	p := ReadCharacterListWorldRequest(r)
 
 	w, err := processors.GetWorld(p.WorldId())
@@ -53,24 +53,24 @@ func (h *CharacterListWorldHandler) HandleRequest(l *log.Logger, s *sessions.Ses
 	}
 
 	if w.CapacityStatus() == status.Full {
-		s.Announce(writer.WriteWorldCapacityStatus(status.Full))
+		(*ms).Announce(writer.WriteWorldCapacityStatus(status.Full))
 		return
 	}
 
-	s.SetWorldId(p.WorldId())
-	s.SetChannelId(p.ChannelId())
+	(*ms).SetWorldId(p.WorldId())
+	(*ms).SetChannelId(p.ChannelId())
 
-	a, err := processors.GetAccountById(s.AccountId())
+	a, err := processors.GetAccountById((*ms).AccountId())
 	if err != nil {
 		l.Println("[ERROR] cannot retrieve account")
 		return
 	}
 
-	cs, err := processors.GetCharactersForWorld(s.AccountId(), p.WorldId())
+	cs, err := processors.GetCharactersForWorld((*ms).AccountId(), p.WorldId())
 	if err != nil {
 		l.Println("[ERROR] cannot retrieve account characters")
 		return
 	}
 
-	s.Announce(writer.WriteCharacterList(cs, p.WorldId(), 0, true, a.PIC(), int16(1), a.CharacterSlots()))
+	(*ms).Announce(writer.WriteCharacterList(cs, p.WorldId(), 0, true, a.PIC(), int16(1), a.CharacterSlots()))
 }

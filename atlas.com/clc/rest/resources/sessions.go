@@ -3,7 +3,7 @@ package resources
 import (
 	"atlas-clc/registries"
 	"atlas-clc/rest/attributes"
-	"atlas-clc/sessions"
+	"atlas-clc/mapleSession"
 	"atlas-clc/socket/response/writer"
 	"github.com/gorilla/mux"
 	"log"
@@ -84,7 +84,7 @@ func getErrorId(r *http.Request) byte {
 	return byte(value)
 }
 
-func getSessionObject(x sessions.Session) *SessionData {
+func getSessionObject(x mapleSession.MapleSession) *SessionData {
 	return &SessionData{
 		Id:   strconv.Itoa(x.SessionId()),
 		Type: "Session",
