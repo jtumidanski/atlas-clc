@@ -33,11 +33,11 @@ func (r *SessionRegistry) Remove(sessionId int) {
 	r.mutex.Unlock()
 }
 
-func (r *SessionRegistry) Get(sessionId int) *sessions.Session {
+func (r *SessionRegistry) Get(sessionId int) sessions.Session {
 	r.mutex.RLock()
 	s := r.sessionRegistry[sessionId]
 	r.mutex.RUnlock()
-	return s
+	return *s
 }
 
 func (r *SessionRegistry) GetAll() []sessions.Session {

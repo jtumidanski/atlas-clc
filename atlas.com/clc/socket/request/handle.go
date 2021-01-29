@@ -4,25 +4,27 @@ import (
 	"atlas-clc/registries"
 	"atlas-clc/sessions"
 	"atlas-clc/socket/request/handler"
+	"github.com/jtumidanski/atlas-socket/request"
+	"github.com/jtumidanski/atlas-socket/request/handlers"
 	"log"
 )
 
-type RequestHandler interface {
-	IsValid(l *log.Logger, s *sessions.Session) bool
-
-	HandleRequest(l *log.Logger, s *sessions.Session, r *RequestReader)
-}
-
-type RequestHandle struct {
-	l *log.Logger
-
-	h RequestHandler
-}
+struct
 
 func (h *RequestHandle) Handle(sessionId int, r *RequestReader) {
+
+}
+
+type LoginHandle struct {
+	l *log.Logger
+
+	h handlers.Handler
+}
+
+func (h *LoginHandle) Handle(sessionId int, r *request.RequestReader) {
 	s := registries.GetSessionRegistry().Get(sessionId)
 	if s != nil {
-		if h.h.IsValid(h.l, s) {
+		if h.h.IsValid(h.l, *s) {
 			h.h.HandleRequest(h.l, s, r)
 			s.UpdateLastPacket()
 		}
@@ -31,10 +33,10 @@ func (h *RequestHandle) Handle(sessionId int, r *RequestReader) {
 	}
 }
 
-func GetHandle(l *log.Logger, op uint16) *RequestHandle {
+func Supply(op uint16) request.Handle {
 	switch op {
 	case handler.OpCodeLogin:
-		return &RequestHandle{l, &handler.LoginHandler{}}
+		return request.Handle{&handler.LoginHandler{}}
 	case handler.OpCodeServerListReRequest:
 		return &RequestHandle{l, &handler.ServerListHandler{}}
 	case handler.OpCodeCharacterListWorld:

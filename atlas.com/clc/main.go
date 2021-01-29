@@ -4,8 +4,8 @@ import (
 	"atlas-clc/registries"
 	rest2 "atlas-clc/rest"
 	sessions2 "atlas-clc/sessions"
-	"atlas-clc/socket"
 	"atlas-clc/tasks"
+	"github.com/jtumidanski/atlas-socket"
 	"log"
 	"os"
 	"os/signal"
@@ -42,7 +42,7 @@ func main() {
 
 	sessions := registries.GetSessionRegistry().GetAll()
 	for _, s := range sessions {
-		socket.Disconnect(l, &s)
+		socket.Disconnect(l, s)
 		s.Disconnect()
 	}
 }

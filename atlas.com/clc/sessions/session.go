@@ -1,9 +1,9 @@
 package sessions
 
 import (
-	"atlas-clc/socket"
-	"atlas-clc/socket/crypto"
 	"atlas-clc/socket/response/writer"
+	"github.com/jtumidanski/atlas-socket/crypto"
+	session2 "github.com/jtumidanski/atlas-socket/session"
 	"log"
 	"math/rand"
 	"net"
@@ -11,8 +11,10 @@ import (
 )
 
 type Session interface {
+	session2.Session
 	SessionId() int
-	socket.SocketSession
+	Disconnect()
+	AccountId() int
 }
 
 type session struct {
@@ -31,14 +33,14 @@ const (
 	version uint16 = 83
 )
 
-func NewSession(id int, con *net.Conn, l *log.Logger) *Session {
+func NewSession(id int, con net.Conn, l *log.Logger) Session {
 	recvIv := []byte{70, 114, 122, 82}
 	sendIv := []byte{82, 48, 120, 115}
 	recvIv[3] = byte(rand.Float64() * 255)
 	sendIv[3] = byte(rand.Float64() * 255)
 	send := crypto.NewAESOFB(sendIv, uint16(65535)-version)
 	recv := crypto.NewAESOFB(recvIv, version)
-	return session{id, -1, 0, 0, *con, l, *send, *recv, time.Now()}
+	return &session{id, -1, 0, 0, con, l, *send, *recv, time.Now()}
 }
 
 func (s *session) SetAccountId(accountId int) {
@@ -75,7 +77,7 @@ func (s *session) WriteHello() {
 	s.announce(writer.WriteHello(version, s.send.IV(), s.recv.IV()))
 }
 
-func (s *session) GetRecv() *crypto.AESOFB {
+func (s *session) ReceiveAESOFB() *crypto.AESOFB {
 	return &s.recv
 }
 

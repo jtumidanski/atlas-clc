@@ -2,13 +2,14 @@ package sessions
 
 import (
 	"atlas-clc/registries"
-	"atlas-clc/socket"
+	session2 "github.com/jtumidanski/atlas-socket/session"
+	"io"
 	"log"
 	"net"
 )
 
 type SessionService interface {
-	socket.SocketSessionCreator
+	session2.Service
 }
 
 type sessionService struct {
@@ -17,23 +18,32 @@ type sessionService struct {
 }
 
 func NewSessionService(l *log.Logger) SessionService {
-	return sessionService{l, registries.GetSessionRegistry()}
+	return &sessionService{l, registries.GetSessionRegistry()}
 }
 
-func (s *sessionService) Create(sessionId int, conn *net.Conn, l *log.Logger) (*Session, error) {
-	return NewSession(sessionId, conn, l), nil
+func NewReaderService() io.Reader {
+	var rw io.ReadWriter
+	c := rw.(io.Reader)
+	return c
 }
 
-func (s *sessionService) Add(session session) {
-	s.r.Add(session)
+func (s *sessionService) Create(l *log.Logger, sessionId int, conn net.Conn) (session2.Session, error) {
+	session := NewSession(sessionId, conn, l)
+	s.r.Add(&session)
+	return session, nil
 }
 
-func (s *sessionService) Get(sessionId int) Session {
+func (s *sessionService) Get(sessionId int) session2.Session {
 	return s.r.Get(sessionId)
 }
 
-func (s *sessionService) GetAll() []Session {
-	return s.r.GetAll()
+func (s *sessionService) GetAll() []session2.Session {
+	ss := s.r.GetAll()
+	b := make([]session2.Session, len(ss))
+	for i, v := range ss {
+		b[i] = v.(session2.Session)
+	}
+	return b
 }
 
 func (s *sessionService) Destroy(sessionId int) {
