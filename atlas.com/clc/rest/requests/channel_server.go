@@ -3,7 +3,6 @@ package requests
 import (
 	"atlas-clc/rest/attributes"
 	"fmt"
-	"log"
 )
 
 const (
@@ -11,18 +10,18 @@ const (
 	ChannelServersByWorld             = ChannelServersResource + "?world=%d"
 )
 
-func GetChannels(l *log.Logger) (*attributes.ChannelServerDataContainer, error) {
+func GetChannels() (*attributes.ChannelServerDataContainer, error) {
 	r := &attributes.ChannelServerDataContainer{}
-	err := Get(l, ChannelServersResource, r)
+	err := Get(ChannelServersResource, r)
 	if err != nil {
 		return nil, err
 	}
 	return r, nil
 }
 
-func GetChannelsForWorld(l *log.Logger, worldId byte) (*attributes.ChannelServerDataContainer, error) {
+func GetChannelsForWorld(worldId byte) (*attributes.ChannelServerDataContainer, error) {
 	r := &attributes.ChannelServerDataContainer{}
-	err := Get(l, fmt.Sprintf(ChannelServersByWorld, worldId), r)
+	err := Get(fmt.Sprintf(ChannelServersByWorld, worldId), r)
 	if err != nil {
 		return nil, err
 	}

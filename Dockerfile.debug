@@ -30,6 +30,7 @@ WORKDIR /
 
 COPY --from=build-env /server /
 COPY --from=build-env /go/bin/dlv /
+COPY /atlas.com/clc/config.yaml /
 COPY /atlas.com/clc/swagger.yaml /
 
 # Run delve

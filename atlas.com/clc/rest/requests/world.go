@@ -3,7 +3,6 @@ package requests
 import (
 	"atlas-clc/rest/attributes"
 	"fmt"
-	"log"
 )
 
 const (
@@ -13,18 +12,18 @@ const (
 	WorldsById                        = WorldsResource + "%d"
 )
 
-func GetWorlds(l *log.Logger) (*attributes.WorldDataContainer, error) {
+func GetWorlds() (*attributes.WorldDataContainer, error) {
 	r := &attributes.WorldDataContainer{}
-	err := Get(l, WorldsResource, r)
+	err := Get(WorldsResource, r)
 	if err != nil {
 		return nil, err
 	}
 	return r, nil
 }
 
-func GetWorld(l *log.Logger, worldId byte) (*attributes.WorldDataContainer, error) {
+func GetWorld(worldId byte) (*attributes.WorldDataContainer, error) {
 	r := &attributes.WorldDataContainer{}
-	err := Get(l, fmt.Sprintf(WorldsById, worldId), r)
+	err := Get(fmt.Sprintf(WorldsById, worldId), r)
 	if err != nil {
 		return nil, err
 	}

@@ -2,11 +2,10 @@ package processors
 
 import (
 	"atlas-clc/rest/requests"
-	"log"
 )
 
-func GetBlockedName(l *log.Logger, name string) (string, error) {
-	a, err := requests.GetBlockedNamesByName(l, name)
+func GetBlockedName(name string) (string, error) {
+	a, err := requests.GetBlockedNamesByName(name)
 	if err != nil {
 		return "", err
 	}
@@ -16,8 +15,8 @@ func GetBlockedName(l *log.Logger, name string) (string, error) {
 	return a.Data().Attributes.Name, nil
 }
 
-func IsBlockedName(l *log.Logger, name string) (bool, error) {
-	n, err := GetBlockedName(l, name)
+func IsBlockedName(name string) (bool, error) {
+	n, err := GetBlockedName(name)
 	if err != nil {
 		return true, err
 	}

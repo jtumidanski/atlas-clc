@@ -1,165 +1,163 @@
 package processors
 
 import (
-	"atlas-clc/models"
-	"atlas-clc/rest/attributes"
-	"atlas-clc/rest/requests"
-	"errors"
-	"log"
-	"regexp"
-	"strconv"
+   "atlas-clc/domain"
+   "atlas-clc/rest/attributes"
+   "atlas-clc/rest/requests"
+   "errors"
+   "regexp"
+   "strconv"
 )
 
-func GetCharacterAttributesByName(l *log.Logger, name string) (*models.CharacterAttributes, error) {
-	ca, err := requests.GetCharacterAttributesByName(l, name)
-	if err != nil {
-		return nil, err
-	}
-	if len(ca.DataList()) <= 0 {
-		return nil, errors.New("unable to find character by name")
-	}
+func GetCharacterAttributesByName(name string) (*domain.CharacterAttributes, error) {
+   ca, err := requests.GetCharacterAttributesByName(name)
+   if err != nil {
+      return nil, err
+   }
+   if len(ca.DataList()) <= 0 {
+      return nil, errors.New("unable to find character by name")
+   }
 
-	return makeCharacterAttributes(ca.Data()), nil
+   return makeCharacterAttributes(ca.Data()), nil
 }
 
-func makeCharacterAttributes(ca *attributes.CharacterAttributesData) *models.CharacterAttributes {
-	cid, err := strconv.ParseUint(ca.Id, 10, 32)
-	if err != nil {
-		return nil
-	}
-	att := ca.Attributes
-	return models.NewCharacterAttributeBuilder().
-		SetId(uint32(cid)).
-		SetWorldId(att.WorldId).
-		SetName(att.Name).
-		SetGender(att.Gender).
-		SetSkinColor(att.SkinColor).
-		SetFace(att.Face).
-		SetHair(att.Hair).
-		SetLevel(att.Level).
-		SetJobId(att.JobId).
-		SetStrength(att.Strength).
-		SetDexterity(att.Dexterity).
-		SetIntelligence(att.Intelligence).
-		SetLuck(att.Luck).
-		SetHp(att.Hp).
-		SetMaxHp(att.MaxHp).
-		SetMp(att.Mp).
-		SetMaxMp(att.MaxMp).
-		SetAp(att.Ap).
-		SetSp(att.Sp).
-		SetExperience(att.Experience).
-		SetFame(att.Fame).
-		SetGachaponExperience(att.GachaponExperience).
-		SetMapId(att.MapId).
-		SetSpawnPoint(att.SpawnPoint).
-		Build()
+func makeCharacterAttributes(ca *attributes.CharacterAttributesData) *domain.CharacterAttributes {
+   cid, err := strconv.ParseUint(ca.Id, 10, 32)
+   if err != nil {
+      return nil
+   }
+   att := ca.Attributes
+   r := domain.NewCharacterAttributeBuilder().
+      SetId(uint32(cid)).
+      SetWorldId(att.WorldId).
+      SetName(att.Name).
+      SetGender(att.Gender).
+      SetSkinColor(att.SkinColor).
+      SetFace(att.Face).
+      SetHair(att.Hair).
+      SetLevel(att.Level).
+      SetJobId(att.JobId).
+      SetStrength(att.Strength).
+      SetDexterity(att.Dexterity).
+      SetIntelligence(att.Intelligence).
+      SetLuck(att.Luck).
+      SetHp(att.Hp).
+      SetMaxHp(att.MaxHp).
+      SetMp(att.Mp).
+      SetMaxMp(att.MaxMp).
+      SetAp(att.Ap).
+      SetSp(att.Sp).
+      SetExperience(att.Experience).
+      SetFame(att.Fame).
+      SetGachaponExperience(att.GachaponExperience).
+      SetMapId(att.MapId).
+      SetSpawnPoint(att.SpawnPoint).
+      Build()
+   return &r
 }
 
-func IsValidName(l *log.Logger, name string) (bool, error) {
-	m, err := regexp.MatchString("[a-zA-Z0-9]{3,12}", name)
-	if err != nil {
-		l.Println("[ERROR] error processing regex for character name matching")
-		return false, err
-	}
-	if !m {
-		return false, nil
-	}
+func IsValidName(name string) (bool, error) {
+   m, err := regexp.MatchString("[a-zA-Z0-9]{3,12}", name)
+   if err != nil {
+      return false, err
+   }
+   if !m {
+      return false, nil
+   }
 
-	_, err = GetCharacterAttributesByName(l, name)
-	if err == nil {
-		return false, nil
-	}
+   _, err = GetCharacterAttributesByName(name)
+   if err == nil {
+      return false, nil
+   }
 
-	if err.Error() != "unable to find character by name" {
-		return false, nil
-	}
+   if err.Error() != "unable to find character by name" {
+      return false, nil
+   }
 
-	bn, err := IsBlockedName(l, name)
-	if bn {
-		return false, err
-	}
+   bn, err := IsBlockedName(name)
+   if bn {
+      return false, err
+   }
 
-	return true, nil
+   return true, nil
 }
 
-func GetCharactersForWorld(l *log.Logger, accountId int, worldId byte) ([]models.Character, error) {
-	cs, err := requests.GetCharacterAttributesForAccountByWorld(l, accountId, worldId)
-	if err != nil {
-		l.Println("[ERROR] error retrieving characters for account by world")
-		return nil, err
-	}
+func GetCharactersForWorld(accountId uint32, worldId byte) ([]domain.Character, error) {
+   cs, err := requests.GetCharacterAttributesForAccountByWorld(accountId, worldId)
+   if err != nil {
+      return nil, err
+   }
 
-	var characters = make([]models.Character, 0)
-	for _, x := range cs.DataList() {
-		c, err := getCharacterForAttributes(l, &x)
-		if err != nil {
-			l.Println("[ERROR] error retrieving character detail")
-			return nil, err
-		}
-		characters = append(characters, *c)
-	}
-	return characters, nil
+   var characters = make([]domain.Character, 0)
+   for _, x := range cs.DataList() {
+      c, err := getCharacterForAttributes(&x)
+      if err != nil {
+         return nil, err
+      }
+      characters = append(characters, *c)
+   }
+   return characters, nil
 }
 
-func GetCharacterById(l *log.Logger, characterId uint32) (*models.Character, error) {
-	cs, err := requests.GetCharacterAttributesById(l, characterId)
-	if err != nil {
-		l.Println("[ERROR] error retrieving character by id")
-		return nil, err
-	}
+func GetCharacterById(characterId uint32) (*domain.Character, error) {
+   cs, err := requests.GetCharacterAttributesById(characterId)
+   if err != nil {
+      return nil, err
+   }
 
-	c, err := getCharacterForAttributes(l, cs.Data())
-	if err != nil {
-		return nil, err
-	}
-	return c, nil
+   c, err := getCharacterForAttributes(cs.Data())
+   if err != nil {
+      return nil, err
+   }
+   return c, nil
 }
 
-func getCharacterForAttributes(l *log.Logger, data *attributes.CharacterAttributesData) (*models.Character, error) {
-	ca := makeCharacterAttributes(data)
-	if ca == nil {
-		return nil, errors.New("unable to make character attributes")
-	}
+func getCharacterForAttributes(data *attributes.CharacterAttributesData) (*domain.Character, error) {
+   ca := makeCharacterAttributes(data)
+   if ca == nil {
+      return nil, errors.New("unable to make character attributes")
+   }
 
-	eq, err := getEquippedItemsForCharacter(l, ca.Id())
-	if err != nil {
-		return nil, err
-	}
+   eq, err := getEquippedItemsForCharacter(ca.Id())
+   if err != nil {
+      return nil, err
+   }
 
-	ps, err := getPetsForCharacter(l, ca.Id())
-	if err != nil {
-		return nil, err
-	}
+   ps, err := getPetsForCharacter()
+   if err != nil {
+      return nil, err
+   }
 
-	return models.NewCharacter(*ca, eq, ps), nil
+   c := domain.NewCharacter(*ca, eq, ps)
+   return &c, nil
 }
 
-func getPetsForCharacter(l *log.Logger, characterId uint32) ([]models.Pet, error) {
-	return make([]models.Pet, 0), nil
+func getPetsForCharacter() ([]domain.Pet, error) {
+   return make([]domain.Pet, 0), nil
 }
 
-func getEquippedItemsForCharacter(l *log.Logger, characterId uint32) ([]models.EquippedItem, error) {
-	r, err := requests.GetEquippedItemsForCharacter(l, characterId)
-	if err != nil {
-		return nil, err
-	}
+func getEquippedItemsForCharacter(characterId uint32) ([]domain.EquippedItem, error) {
+   r, err := requests.GetEquippedItemsForCharacter(characterId)
+   if err != nil {
+      return nil, err
+   }
 
-	ei := make([]models.EquippedItem, 0)
-	for _, e := range r.GetIncludedEquippedItems() {
-		ea := r.GetEquipmentStatistics(e.Attributes.EquipmentId)
-		if ea != nil {
-			ei = append(ei, *models.NewEquippedItem(ea.ItemId, e.Attributes.Slot))
-		}
-	}
+   eis := make([]domain.EquippedItem, 0)
+   for _, e := range r.GetIncludedEquippedItems() {
+      ea := r.GetEquipmentStatistics(e.Attributes.EquipmentId)
+      if ea != nil {
+         ei := domain.NewEquippedItem(ea.ItemId, e.Attributes.Slot)
+         eis = append(eis, ei)
+      }
+   }
 
-	return ei, nil
+   return eis, nil
 }
 
-func SeedCharacter(l *log.Logger, accountId int, worldId byte, name string, job uint32, face uint32, hair uint32, color uint32, skinColor uint32, gender byte, top uint32, bottom uint32, shoes uint32, weapon uint32) (*models.CharacterAttributes, error) {
-	ca, err := requests.SeedCharacter(l, accountId, worldId, name, job, face, hair, color, skinColor, gender, top, bottom, shoes, weapon)
-	if err != nil {
-		return nil, err
-	}
-	return makeCharacterAttributes(ca), nil
+func SeedCharacter(accountId uint32, worldId byte, name string, job uint32, face uint32, hair uint32, color uint32, skinColor uint32, gender byte, top uint32, bottom uint32, shoes uint32, weapon uint32) (*domain.CharacterAttributes, error) {
+   ca, err := requests.SeedCharacter(accountId, worldId, name, job, face, hair, color, skinColor, gender, top, bottom, shoes, weapon)
+   if err != nil {
+      return nil, err
+   }
+   return makeCharacterAttributes(ca), nil
 }
