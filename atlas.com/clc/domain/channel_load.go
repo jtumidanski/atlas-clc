@@ -5,14 +5,14 @@ type ChannelLoad struct {
 	capacity  int
 }
 
-func NewChannelLoad(channelId byte, capacity int) *ChannelLoad {
-	return &ChannelLoad{channelId, capacity}
+func NewChannelLoad(channelId byte, capacity int) ChannelLoad {
+	return ChannelLoad{channelId, capacity}
 }
 
-func (cl *ChannelLoad) ChannelId() byte {
+func (cl ChannelLoad) ChannelId() byte {
 	return cl.channelId
 }
 
-func (cl *ChannelLoad) Capacity() int {
+func (cl ChannelLoad) Capacity() int {
 	return cl.capacity
 }

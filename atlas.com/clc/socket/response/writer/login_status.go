@@ -4,12 +4,12 @@ import "atlas-clc/socket/response"
 
 const OpCodeLoginStatus uint16 = 0x00
 
-func WriteAuthSuccess(accountId int, name string, gender byte, pic string) []byte {
+func WriteAuthSuccess(accountId uint32, name string, gender byte, pic string) []byte {
 	w := response.NewWriter()
 	w.WriteShort(OpCodeLoginStatus)
 	w.WriteInt(0)
 	w.WriteShort(0)
-	w.WriteInt(uint32(accountId))
+	w.WriteInt(accountId)
 	w.WriteByte(gender)
 	//boolean canFly = false;// Server.getInstance().canFly(client.getAccID());
 	//writer.writeBool((YamlConfig.config.server.USE_ENFORCE_ADMIN_ACCOUNT || canFly) && client.getGMLevel() > 1);    // GM

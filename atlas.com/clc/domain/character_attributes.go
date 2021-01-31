@@ -394,8 +394,8 @@ func (c *characterAttributeBuilder) SetJobRankMove(jobRankMove int) *characterAt
 	return c
 }
 
-func (c *characterAttributeBuilder) Build() *CharacterAttributes {
-	return &CharacterAttributes{
+func (c *characterAttributeBuilder) Build() CharacterAttributes {
+	return CharacterAttributes{
 		id:                 c.id,
 		worldId:            c.worldId,
 		name:               c.name,

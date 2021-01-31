@@ -42,7 +42,7 @@ func (h *CharacterListAllHandler) announceAllCharacters(cm map[byte][]domain.Cha
 	}
 }
 
-func (h *CharacterListAllHandler) getWorldCharacters(accountId int, ws []domain.World) map[byte][]domain.Character {
+func (h *CharacterListAllHandler) getWorldCharacters(accountId uint32, ws []domain.World) map[byte][]domain.Character {
 	var cwm = make(map[byte][]domain.Character, 0)
 	for _, x := range ws {
 		cs, err := processors.GetCharactersForWorld(accountId, x.Id())

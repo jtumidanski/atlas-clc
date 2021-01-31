@@ -13,6 +13,6 @@ func (r WorldRecommendation) Reason() string {
 	return r.reason
 }
 
-func NewWorldRecommendation(worldId byte, reason string) *WorldRecommendation {
-	return &WorldRecommendation{worldId, reason}
+func NewWorldRecommendation(worldId byte, reason string) WorldRecommendation {
+	return WorldRecommendation{worldId, reason}
 }

@@ -23,7 +23,7 @@ func main() {
 		l.Fatal("[ERROR] Unable to successfully load configuration.")
 	}
 
-	lss := services.NewMapleSessionService(l)
+	lss := services.NewMapleSessionService()
 	ss, err := socket.NewServer(l, lss, socket.IpAddress("0.0.0.0"), socket.Port(8484))
 	if err != nil {
 		return

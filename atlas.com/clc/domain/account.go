@@ -1,7 +1,7 @@
 package domain
 
 type Account struct {
-	id             int
+	id             uint32
 	name           string
 	password       string
 	pin            string
@@ -16,32 +16,32 @@ type Account struct {
 	characterSlots int16
 }
 
-func (a *Account) Id() int {
+func (a Account) Id() uint32 {
 	return a.id
 }
 
-func (a *Account) Name() string {
+func (a Account) Name() string {
 	return a.name
 }
 
-func (a *Account) Gender() byte {
+func (a Account) Gender() byte {
 	return a.gender
 }
 
-func (a *Account) PIC() string {
+func (a Account) PIC() string {
 	return a.pic
 }
 
-func (a *Account) CharacterSlots() int16 {
+func (a Account) CharacterSlots() int16 {
 	return a.characterSlots
 }
 
-func (a *Account) LoggedIn() int {
+func (a Account) LoggedIn() int {
 	return a.loggedIn
 }
 
 type accountBuilder struct {
-	id             int
+	id             uint32
 	name           string
 	password       string
 	pin            string
@@ -60,7 +60,7 @@ func NewAccountBuilder() *accountBuilder {
 	return &accountBuilder{}
 }
 
-func (a *accountBuilder) SetId(id int) *accountBuilder {
+func (a *accountBuilder) SetId(id uint32) *accountBuilder {
 	a.id = id
 	return a
 }
@@ -125,8 +125,8 @@ func (a *accountBuilder) SetCharacterSlots(characterSlots int16) *accountBuilder
 	return a
 }
 
-func (a *accountBuilder) Build() *Account {
-	return &Account{
+func (a *accountBuilder) Build() Account {
+	return Account{
 		id:             a.id,
 		name:           a.name,
 		password:       a.password,

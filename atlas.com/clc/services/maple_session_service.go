@@ -4,7 +4,6 @@ import (
 	"atlas-clc/mapleSession"
 	"atlas-clc/registries"
 	"github.com/jtumidanski/atlas-socket/session"
-	"log"
 	"net"
 )
 
@@ -13,17 +12,17 @@ type Service interface {
 }
 
 type mapleSessionService struct {
-	l *log.Logger
 	r *registries.SessionRegistry
 }
 
-func NewMapleSessionService(l *log.Logger) Service {
-	return &mapleSessionService{l, registries.GetSessionRegistry()}
+func NewMapleSessionService() Service {
+	return &mapleSessionService{registries.GetSessionRegistry()}
 }
 
-func (s *mapleSessionService) Create(l *log.Logger, sessionId int, conn net.Conn) (session.Session, error) {
-	ses := mapleSession.NewSession(sessionId, conn, l)
+func (s *mapleSessionService) Create(sessionId int, conn net.Conn) (session.Session, error) {
+	ses := mapleSession.NewSession(sessionId, conn)
 	s.r.Add(&ses)
+	ses.WriteHello()
 	return ses, nil
 }
 

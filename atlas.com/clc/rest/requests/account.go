@@ -22,7 +22,7 @@ func GetAccountByName(name string) (*attributes.AccountDataContainer, error) {
 	return ar, nil
 }
 
-func GetAccountById(id int) (*attributes.AccountDataContainer, error) {
+func GetAccountById(id uint32) (*attributes.AccountDataContainer, error) {
 	ar := &attributes.AccountDataContainer{}
 	err := Get(fmt.Sprintf(AccountsById, id), ar)
 	if err != nil {

@@ -36,7 +36,7 @@ func GetChannelForWorld(worldId byte, channelId byte) (*domain.Channel, error) {
 	for _, x := range r.DataList() {
 		w := makeChannel(x)
 		if w.ChannelId() == channelId {
-			return w, nil
+			return &w, nil
 		}
 	}
 	return nil, errors.New("unable to locate channel for world")
@@ -52,9 +52,9 @@ func GetChannelLoadByWorld() (map[int][]domain.ChannelLoad, error) {
 	for _, x := range cs {
 		cl := domain.NewChannelLoad(x.ChannelId(), x.Capacity())
 		if _, ok := cls[int(x.WorldId())]; ok {
-			cls[int(x.WorldId())] = append(cls[int(x.WorldId())], *cl)
+			cls[int(x.WorldId())] = append(cls[int(x.WorldId())], cl)
 		} else {
-			cls[int(x.WorldId())] = append([]domain.ChannelLoad{}, *cl)
+			cls[int(x.WorldId())] = append([]domain.ChannelLoad{}, cl)
 		}
 	}
 	return cls, nil
@@ -64,12 +64,12 @@ func makeChannelList(d []attributes.ChannelServerData) []domain.Channel {
 	var cs = make([]domain.Channel, 0)
 	for _, x := range d {
 		c := makeChannel(x)
-		cs = append(cs, *c)
+		cs = append(cs, c)
 	}
 	return cs
 }
 
-func makeChannel(data attributes.ChannelServerData) *domain.Channel {
+func makeChannel(data attributes.ChannelServerData) domain.Channel {
 	att := data.Attributes
 	return domain.NewChannelBuilder().
 		SetWorldId(att.WorldId).

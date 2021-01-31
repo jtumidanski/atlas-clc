@@ -12,7 +12,7 @@ func (i EquippedItem) NotInWeaponSlot() bool {
 	return false
 }
 
-func (i EquippedItem) InvertSlot() *EquippedItem {
+func (i EquippedItem) InvertSlot() EquippedItem {
 	return NewEquippedItem(i.itemId, i.slot*-1)
 }
 
@@ -31,6 +31,6 @@ func (i EquippedItem) InWeaponSlot() bool {
 	return false
 }
 
-func NewEquippedItem(itemId uint32, slot int16) *EquippedItem {
-	return &EquippedItem{itemId, slot}
+func NewEquippedItem(itemId uint32, slot int16) EquippedItem {
+	return EquippedItem{itemId, slot}
 }

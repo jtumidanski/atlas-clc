@@ -12,41 +12,41 @@ type World struct {
 	channelLoad        []ChannelLoad
 }
 
-func (w *World) Id() byte {
+func (w World) Id() byte {
 	return w.id
 }
 
-func (w *World) SetChannelLoad(val []ChannelLoad) *World {
+func (w World) SetChannelLoad(val []ChannelLoad) World {
 	return CloneWorld(w).
 		SetChannelLoad(val).
 		Build()
 }
 
-func (w *World) Name() string {
+func (w World) Name() string {
 	return w.name
 }
 
-func (w *World) Flag() int {
+func (w World) Flag() int {
 	return w.flag
 }
 
-func (w *World) EventMessage() string {
+func (w World) EventMessage() string {
 	return w.eventMessage
 }
 
-func (w *World) ChannelLoad() []ChannelLoad {
+func (w World) ChannelLoad() []ChannelLoad {
 	return w.channelLoad
 }
 
-func (w *World) Recommended() bool {
+func (w World) Recommended() bool {
 	return w.recommended
 }
 
-func (w *World) Recommendation() *WorldRecommendation {
+func (w World) Recommendation() WorldRecommendation {
 	return NewWorldRecommendation(w.id, w.recommendedMessage)
 }
 
-func (w *World) CapacityStatus() uint16 {
+func (w World) CapacityStatus() uint16 {
 	return w.capacityStatus
 }
 
@@ -66,7 +66,7 @@ func NewWorldBuilder() *worldBuilder {
 	return &worldBuilder{}
 }
 
-func CloneWorld(o *World) *worldBuilder {
+func CloneWorld(o World) *worldBuilder {
 	return &worldBuilder{
 		id:                 o.id,
 		name:               o.name,
@@ -125,8 +125,8 @@ func (w *worldBuilder) SetChannelLoad(channelLoad []ChannelLoad) *worldBuilder {
 	return w
 }
 
-func (w *worldBuilder) Build() *World {
-	return &World{
+func (w *worldBuilder) Build() World {
+	return World{
 		id:                 w.id,
 		name:               w.name,
 		flag:               w.flag,

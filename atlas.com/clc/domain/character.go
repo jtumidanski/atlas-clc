@@ -18,6 +18,6 @@ func (c Character) Equipment() []EquippedItem {
 	return c.equipment
 }
 
-func NewCharacter(attributes CharacterAttributes, equipment []EquippedItem, pets []Pet) *Character {
-	return &Character{attributes, equipment, pets}
+func NewCharacter(attributes CharacterAttributes, equipment []EquippedItem, pets []Pet) Character {
+	return Character{attributes, equipment, pets}
 }

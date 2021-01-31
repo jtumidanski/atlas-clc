@@ -40,7 +40,7 @@ func (h *CharacterCheckNameHandler) HandleRequest(l *log.Logger, ms *mapleSessio
 	v, err := processors.IsValidName(p.Name())
 	if err != nil {
 		l.Println("[ERROR] validating character name on creation")
-		(*ms).Announce(writer.WriteCharacterNameCheckResponse(p.Name(), true))
+		(*ms).Announce(writer.WriteCharacterNameCheck(p.Name(), true))
 	}
-	(*ms).Announce(writer.WriteCharacterNameCheckResponse(p.Name(), !v))
+	(*ms).Announce(writer.WriteCharacterNameCheck(p.Name(), !v))
 }
