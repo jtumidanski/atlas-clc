@@ -34,17 +34,6 @@ func Post(url string, input interface{}) (*http.Response, error) {
 	return r, nil
 }
 
-func Delete(url string) (*http.Response, error) {
-	client := &http.Client{}
-	r, err := http.NewRequest(http.MethodDelete, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	r.Header.Set("Content-Type", "application/json")
-
-	return client.Do(r)
-}
-
 func ProcessResponse(r *http.Response, rb interface{}) error {
 	err := attributes.FromJSON(rb, r.Body)
 	if err != nil {

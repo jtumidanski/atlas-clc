@@ -58,6 +58,7 @@ func registerHandlers(ss *socket.Server, l *log.Logger) {
 	hr(handler.OpCodeCharacterListWorld, &handler.CharacterListWorldHandler{})
 	hr(handler.OpCodeServerStatus, &handler.ServerStatusHandler{})
 	hr(handler.OpCodeServerRequest, &handler.ServerListHandler{})
+	hr(handler.OpCodeDisconnect, &handler.DisconnectHandler{})
 	hr(handler.OpCodeCharacterListAll, &handler.CharacterListAllHandler{})
 	hr(handler.OpCodeCharacterSelectFromAll, &handler.CharacterSelectFromAllHandler{})
 	hr(handler.OpCodeCharacterSelectFromWorld, &handler.CharacterSelectFromWorldHandler{})

@@ -2,13 +2,11 @@ package requests
 
 import (
 	"atlas-clc/rest/attributes"
-	"fmt"
 	"net/http"
 )
 
 const (
 	LoginsResource = AccountsService + "logins/"
-	LoginsById     = LoginsResource + "%d"
 )
 
 func CreateLogin(sessionId int, name string, password string, ipAddress string) (r *http.Response, err error) {
@@ -27,8 +25,4 @@ func CreateLogin(sessionId int, name string, password string, ipAddress string) 
 	}
 
 	return Post(LoginsResource, i)
-}
-
-func CreateLogout(accountId int) {
-	_, _ = Delete(fmt.Sprintf(LoginsById, accountId))
 }

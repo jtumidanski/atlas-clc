@@ -17,14 +17,14 @@ func (c *ClientStartErrorRequest) Error() string {
 }
 
 func ReadClientStartErrorRequest(reader *request.RequestReader) *ClientStartErrorRequest {
-	error := reader.ReadAsciiString()
-	return &ClientStartErrorRequest{error}
+	message := reader.ReadAsciiString()
+	return &ClientStartErrorRequest{message}
 }
 
 type ClientStartErrorHandler struct {
 }
 
-func (c *ClientStartErrorHandler) IsValid(l *log.Logger, ms *mapleSession.MapleSession) bool {
+func (c *ClientStartErrorHandler) IsValid(_ *log.Logger, _ *mapleSession.MapleSession) bool {
 	return true
 }
 
