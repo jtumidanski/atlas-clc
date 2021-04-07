@@ -23,7 +23,7 @@ func main() {
 		l.Fatal("[ERROR] Unable to successfully load configuration.")
 	}
 
-	lss := services.NewMapleSessionService()
+	lss := services.NewMapleSessionService(l)
 	ss, err := socket.NewServer(l, lss, socket.IpAddress("0.0.0.0"), socket.Port(8484))
 	if err != nil {
 		return
@@ -35,7 +35,7 @@ func main() {
 	rs := rest.NewServer(l)
 	go rs.Run()
 
-	go tasks.Register(tasks.NewTimeout(l, time.Second*time.Duration(config.TimeoutTaskInterval)))
+	go tasks.Register(tasks.NewTimeout(l, lss, time.Second*time.Duration(config.TimeoutTaskInterval)))
 
 	// trap sigterm or interrupt and gracefully shutdown the server
 	c := make(chan os.Signal, 1)
@@ -47,7 +47,7 @@ func main() {
 
 	sessions := registries.GetSessionRegistry().GetAll()
 	for _, s := range sessions {
-		s.Disconnect()
+		lss.Destroy(s.SessionId())
 	}
 }
 
@@ -58,7 +58,7 @@ func registerHandlers(ss *socket.Server, l *log.Logger) {
 	hr(handler.OpCodeCharacterListWorld, &handler.CharacterListWorldHandler{})
 	hr(handler.OpCodeServerStatus, &handler.ServerStatusHandler{})
 	hr(handler.OpCodeServerRequest, &handler.ServerListHandler{})
-	hr(handler.OpCodeDisconnect, &handler.DisconnectHandler{})
+	hr(handler.OpCodeClearWorldChannel, &handler.ClearWorldChannelHandler{})
 	hr(handler.OpCodeCharacterListAll, &handler.CharacterListAllHandler{})
 	hr(handler.OpCodeCharacterSelectFromAll, &handler.CharacterSelectFromAllHandler{})
 	hr(handler.OpCodeCharacterSelectFromWorld, &handler.CharacterSelectFromWorldHandler{})

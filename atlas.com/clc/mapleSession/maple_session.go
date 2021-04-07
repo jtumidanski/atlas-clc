@@ -18,6 +18,7 @@ type MapleSession interface {
    SetWorldId(id byte)
    ChannelId() byte
    SetChannelId(id byte)
+   Disconnect()
 }
 
 type mapleSession struct {

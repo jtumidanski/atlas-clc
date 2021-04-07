@@ -1,9 +1,12 @@
 package services
 
 import (
+	"atlas-clc/kafka/producers"
 	"atlas-clc/mapleSession"
 	"atlas-clc/registries"
+	"context"
 	"github.com/jtumidanski/atlas-socket/session"
+	"log"
 	"net"
 )
 
@@ -12,11 +15,12 @@ type Service interface {
 }
 
 type mapleSessionService struct {
+	l *log.Logger
 	r *registries.SessionRegistry
 }
 
-func NewMapleSessionService() Service {
-	return &mapleSessionService{registries.GetSessionRegistry()}
+func NewMapleSessionService(l *log.Logger) Service {
+	return &mapleSessionService{l, registries.GetSessionRegistry()}
 }
 
 func (s *mapleSessionService) Create(sessionId int, conn net.Conn) (session.Session, error) {
@@ -40,5 +44,9 @@ func (s *mapleSessionService) GetAll() []session.Session {
 }
 
 func (s *mapleSessionService) Destroy(sessionId int) {
+	ses := s.Get(sessionId).(mapleSession.MapleSession)
+
 	s.r.Remove(sessionId)
+
+	producers.CharacterStatus(s.l, context.Background()).Logout(ses.WorldId(), ses.ChannelId(), ses.AccountId(), 0)
 }

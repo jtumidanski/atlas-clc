@@ -3,17 +3,19 @@ package tasks
 import (
 	"atlas-clc/mapleSession"
 	"atlas-clc/registries"
+	"github.com/jtumidanski/atlas-socket/session"
 	"log"
 	"time"
 )
 
 type Timeout struct {
 	l        *log.Logger
+	lss      session.Service
 	interval time.Duration
 	timeout  time.Duration
 }
 
-func NewTimeout(l *log.Logger, interval time.Duration) *Timeout {
+func NewTimeout(l *log.Logger, lss session.Service, interval time.Duration) *Timeout {
 	var to int64
 	c, err := registries.GetConfiguration()
 	if err != nil {
@@ -24,7 +26,7 @@ func NewTimeout(l *log.Logger, interval time.Duration) *Timeout {
 
 	timeout := time.Duration(to) * time.Millisecond
 	l.Printf("[INFO] initializing timeout task to run every %dms, timeout session older than %dms", interval.Milliseconds(), timeout.Milliseconds())
-	return &Timeout{l, interval, timeout}
+	return &Timeout{l, lss, interval, timeout}
 }
 
 func (t *Timeout) Run() {
@@ -35,7 +37,7 @@ func (t *Timeout) Run() {
 		as := s.(mapleSession.MapleSession)
 		if cur.Sub(s.LastRequest()) > t.timeout {
 			t.l.Printf("[INFO] Account [%d] was auto-disconnected due to inactivity.", as.AccountId())
-			s.Disconnect()
+			t.lss.Destroy(as.SessionId())
 		}
 	}
 }
