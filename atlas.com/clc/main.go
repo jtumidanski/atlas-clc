@@ -64,6 +64,7 @@ func registerHandlers(ss *socket.Server, l *log.Logger) {
 	hr(handler.OpCodeCharacterCheckName, &handler.CharacterCheckNameHandler{})
 	hr(handler.OpCodeCharacterCreate, &handler.CharacterCreateHandler{})
 	hr(handler.OpCodePong, &handler.PongHandler{})
+	hr(handler.OpCodeClientStartError, &handler.ClientStartErrorHandler{})
 }
 
 func handlerRegister(ss *socket.Server, l *log.Logger) func(uint16, request.MapleHandler) {
