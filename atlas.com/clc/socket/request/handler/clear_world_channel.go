@@ -21,7 +21,7 @@ func (h *ClearWorldChannelHandler) IsValid(l *log.Logger, ms *mapleSession.Maple
 }
 
 func (h ClearWorldChannelHandler) HandleRequest(l *log.Logger, ms *mapleSession.MapleSession, _ *request.RequestReader) {
-	l.Printf("[INFO] clearing the world and channel for session %s.", (*ms).SessionId())
+	l.Printf("[INFO] clearing the world and channel for session %d.", (*ms).SessionId())
 	(*ms).SetWorldId(0)
 	(*ms).SetChannelId(0)
 }
