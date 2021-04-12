@@ -6,8 +6,10 @@ import (
 )
 
 const (
-	BlockedNameResource = BaseRequest + CharactersServicePrefix + "blockedNames/"
-	BlockedNamesByName  = BlockedNameResource + "?name=%s"
+	BlockedNamesServicePrefix string = "/ms/bns/"
+	BlockedNamesService              = BaseRequest + BlockedNamesServicePrefix
+	BlockedNameResource              = BlockedNamesService + "names"
+	BlockedNamesByName               = BlockedNameResource + "?name=%s"
 )
 
 func GetBlockedNamesByName(name string) (*attributes.BlockedNameDataContainer, error) {
