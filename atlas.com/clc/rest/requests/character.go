@@ -14,7 +14,7 @@ const (
 	CharactersById                     = CharactersResource + "%d"
 	CharactersInventoryResource        = CharactersResource + "%d/inventories/"
 	CharacterEquippedItems             = CharactersInventoryResource + "?type=equip&include=inventoryItems,equipmentStatistics"
-	CharacterSeeds                     = CharactersResource + "seeds/"
+	CharacterSeeds                     = CharactersResource + "seeds"
 )
 
 func GetCharacterAttributesByName(name string) (*attributes.CharacterAttributesDataContainer, error) {
