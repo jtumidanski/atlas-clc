@@ -6,7 +6,7 @@ import (
 	"atlas-clc/processors"
 	"atlas-clc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/request"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 const OpCodeCharacterListWorld uint16 = 0x05
@@ -35,20 +35,20 @@ func ReadCharacterListWorldRequest(reader *request.RequestReader) *CharacterList
 type CharacterListWorldHandler struct {
 }
 
-func (h *CharacterListWorldHandler) IsValid(l *log.Logger, ms *mapleSession.MapleSession) bool {
+func (h *CharacterListWorldHandler) IsValid(l logrus.FieldLogger, ms *mapleSession.MapleSession) bool {
 	v := processors.IsLoggedIn((*ms).AccountId())
 	if !v {
-		l.Printf("[ERROR] attempting to process a [CharacterListWorldRequest] when the account %d is not logged in.", (*ms).SessionId())
+		l.Errorf("Attempting to process a [CharacterListWorldRequest] when the account %d is not logged in.", (*ms).SessionId())
 	}
 	return v
 }
 
-func (h *CharacterListWorldHandler) HandleRequest(l *log.Logger, ms *mapleSession.MapleSession, r *request.RequestReader) {
+func (h *CharacterListWorldHandler) HandleRequest(l logrus.FieldLogger, ms *mapleSession.MapleSession, r *request.RequestReader) {
 	p := ReadCharacterListWorldRequest(r)
 
 	w, err := processors.GetWorld(p.WorldId())
 	if err != nil {
-		l.Println("[ERROR] received a character list request for a world we do not have")
+		l.WithError(err).Errorf("Received a character list request for a world we do not have")
 		return
 	}
 
@@ -62,13 +62,13 @@ func (h *CharacterListWorldHandler) HandleRequest(l *log.Logger, ms *mapleSessio
 
 	a, err := processors.GetAccountById((*ms).AccountId())
 	if err != nil {
-		l.Println("[ERROR] cannot retrieve account")
+		l.WithError(err).Errorf("Cannot retrieve account")
 		return
 	}
 
 	cs, err := processors.GetCharactersForWorld((*ms).AccountId(), p.WorldId())
 	if err != nil {
-		l.Println("[ERROR] cannot retrieve account characters")
+		l.WithError(err).Errorf("Cannot retrieve account characters")
 		return
 	}
 

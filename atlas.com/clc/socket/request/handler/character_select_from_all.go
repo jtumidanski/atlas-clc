@@ -6,7 +6,7 @@ import (
 	"atlas-clc/processors"
 	"atlas-clc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/request"
-	"log"
+	"github.com/sirupsen/logrus"
 	"math/rand"
 	"time"
 )
@@ -39,35 +39,35 @@ func ReadCharacterSelectFromAll(reader *request.RequestReader) *CharacterSelectF
 type CharacterSelectFromAllHandler struct {
 }
 
-func (h *CharacterSelectFromAllHandler) IsValid(l *log.Logger, ms *mapleSession.MapleSession) bool {
+func (h *CharacterSelectFromAllHandler) IsValid(l logrus.FieldLogger, ms *mapleSession.MapleSession) bool {
 	v := processors.IsLoggedIn((*ms).AccountId())
 	if !v {
-		l.Printf("[ERROR] attempting to process a [CharacterSelectFromAllRequest] when the account %d is not logged in.", (*ms).SessionId())
+		l.Errorf("Attempting to process a [CharacterSelectFromAllRequest] when the account %d is not logged in.", (*ms).SessionId())
 	}
 	return v
 }
 
-func (h *CharacterSelectFromAllHandler) HandleRequest(l *log.Logger, ms *mapleSession.MapleSession, r *request.RequestReader) {
+func (h *CharacterSelectFromAllHandler) HandleRequest(l logrus.FieldLogger, ms *mapleSession.MapleSession, r *request.RequestReader) {
 	p := ReadCharacterSelectFromAll(r)
 
 	c, err := processors.GetCharacterById(uint32(p.CharacterId()))
 	if err != nil {
-		l.Println("[ERROR] unable to retrieve selected character by id")
+		l.WithError(err).Errorf("Unable to retrieve selected character by id")
 		return
 	}
 	if c.Attributes().WorldId() != byte(p.WorldId()) {
-		l.Println("[ERROR] client supplied world not matching that of the selected character")
+		l.Errorf("Client supplied world not matching that of the selected character")
 		return
 	}
 	(*ms).SetWorldId(c.Attributes().WorldId())
 
 	w, err := processors.GetWorld((*ms).WorldId())
 	if err != nil {
-		l.Println("[ERROR] unable to retrieve world logged into by session")
+		l.WithError(err).Errorf("Unable to retrieve world logged into by session")
 		return
 	}
 	if w.CapacityStatus() == models2.Full {
-		l.Println("[INFO] world being logged into is full")
+		l.Infof("World being logged into is full")
 		//TODO disconnect
 		return
 	}

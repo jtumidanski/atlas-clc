@@ -6,7 +6,7 @@ import (
    "atlas-clc/processors"
    "atlas-clc/socket/response/writer"
    "github.com/jtumidanski/atlas-socket/request"
-   "log"
+   "github.com/sirupsen/logrus"
 )
 
 const OpCodeServerRequest uint16 = 0x0B
@@ -15,24 +15,24 @@ const OpCodeServerListReRequest uint16 = 0x04
 type ServerListHandler struct {
 }
 
-func (h *ServerListHandler) IsValid(l *log.Logger, ms *mapleSession.MapleSession) bool {
+func (h *ServerListHandler) IsValid(l logrus.FieldLogger, ms *mapleSession.MapleSession) bool {
    v := processors.IsLoggedIn((*ms).AccountId())
    if !v {
-      l.Printf("[ERROR] attempting to process a [ServerListRequest] when the account %d is not logged in.", (*ms).SessionId())
+      l.Errorf("Attempting to process a [ServerListRequest] when the account %d is not logged in.", (*ms).SessionId())
    }
    return v
 }
 
-func (h *ServerListHandler) HandleRequest(l *log.Logger, ms *mapleSession.MapleSession, _ *request.RequestReader) {
+func (h *ServerListHandler) HandleRequest(l logrus.FieldLogger, ms *mapleSession.MapleSession, _ *request.RequestReader) {
    ws, err := processors.GetWorlds()
    if err != nil {
-      l.Println("[ERROR] retrieving worlds")
+      l.WithError(err).Errorf("Retrieving worlds")
       return
    }
 
    cls, err := processors.GetChannelLoadByWorld()
    if err != nil {
-      l.Println("[ERROR] retrieving channel load")
+      l.WithError(err).Errorf("Retrieving channel load")
       return
    }
 
@@ -40,14 +40,14 @@ func (h *ServerListHandler) HandleRequest(l *log.Logger, ms *mapleSession.MapleS
    h.respondToSession(ms, nws)
 }
 
-func (h *ServerListHandler) combine(l *log.Logger, ws []domain.World, cls map[int][]domain.ChannelLoad) []domain.World {
+func (h *ServerListHandler) combine(l logrus.FieldLogger, ws []domain.World, cls map[int][]domain.ChannelLoad) []domain.World {
    var nws = make([]domain.World, 0)
 
    for _, x := range ws {
       if val, ok := cls[int(x.Id())]; ok {
          nws = append(nws, x.SetChannelLoad(val))
       } else {
-         l.Println("[ERROR] processing world without a channel load")
+         l.Errorf("Processing world without a channel load")
          nws = append(nws, x)
       }
    }

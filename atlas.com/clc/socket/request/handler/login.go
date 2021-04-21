@@ -7,7 +7,7 @@ import (
 	"atlas-clc/rest/requests"
 	"atlas-clc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/request"
-	"log"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 )
@@ -43,11 +43,11 @@ func ReadLoginRequest(reader *request.RequestReader) *LoginRequest {
 type LoginHandler struct {
 }
 
-func (h *LoginHandler) IsValid(_ *log.Logger, _ *mapleSession.MapleSession) bool {
+func (h *LoginHandler) IsValid(_ logrus.FieldLogger, _ *mapleSession.MapleSession) bool {
 	return true
 }
 
-func (h *LoginHandler) HandleRequest(_ *log.Logger, ms *mapleSession.MapleSession, r *request.RequestReader) {
+func (h *LoginHandler) HandleRequest(_ logrus.FieldLogger, ms *mapleSession.MapleSession, r *request.RequestReader) {
 	p := ReadLoginRequest(r)
 
 	ip := (*ms).GetRemoteAddress().String()

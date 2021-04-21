@@ -5,7 +5,7 @@ import (
 	"atlas-clc/processors"
 	"atlas-clc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/request"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 const OpCodeCharacterCheckName uint16 = 0x15
@@ -26,20 +26,20 @@ func ReadCharacterCheckNameRequest(reader *request.RequestReader) *CharacterChec
 type CharacterCheckNameHandler struct {
 }
 
-func (h *CharacterCheckNameHandler) IsValid(l *log.Logger, ms *mapleSession.MapleSession) bool {
+func (h *CharacterCheckNameHandler) IsValid(l logrus.FieldLogger, ms *mapleSession.MapleSession) bool {
 	v := processors.IsLoggedIn((*ms).AccountId())
 	if !v {
-		l.Printf("[ERROR] attempting to process a [CharacterCheckNameRequest] when the account %d is not logged in.", (*ms).SessionId())
+		l.Errorf("Attempting to process a [CharacterCheckNameRequest] when the account %d is not logged in.", (*ms).SessionId())
 	}
 	return v
 }
 
-func (h *CharacterCheckNameHandler) HandleRequest(l *log.Logger, ms *mapleSession.MapleSession, r *request.RequestReader) {
+func (h *CharacterCheckNameHandler) HandleRequest(l logrus.FieldLogger, ms *mapleSession.MapleSession, r *request.RequestReader) {
 	p := ReadCharacterCheckNameRequest(r)
 
 	v, err := processors.IsValidName(p.Name())
 	if err != nil {
-		l.Println("[ERROR] validating character name on creation")
+		l.WithError(err).Errorf("Validating character name on creation")
 		(*ms).Announce(writer.WriteCharacterNameCheck(p.Name(), true))
 	}
 	(*ms).Announce(writer.WriteCharacterNameCheck(p.Name(), !v))

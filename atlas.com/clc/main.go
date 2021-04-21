@@ -1,6 +1,7 @@
 package main
 
 import (
+	"atlas-clc/logger"
 	"atlas-clc/registries"
 	"atlas-clc/rest"
 	"atlas-clc/services"
@@ -8,6 +9,7 @@ import (
 	"atlas-clc/socket/request/handler"
 	"atlas-clc/tasks"
 	"github.com/jtumidanski/atlas-socket"
+	"github.com/sirupsen/logrus"
 	"log"
 	"os"
 	"os/signal"
@@ -16,15 +18,19 @@ import (
 )
 
 func main() {
-	l := log.New(os.Stdout, "clc ", log.LstdFlags|log.Lmicroseconds)
+	l := logger.CreateLogger()
 
 	config, err := registries.GetConfiguration()
 	if err != nil {
-		l.Fatal("[ERROR] Unable to successfully load configuration.")
+		l.WithError(err).Fatal("Unable to successfully load configuration.")
 	}
 
 	lss := services.NewMapleSessionService(l)
-	ss, err := socket.NewServer(l, lss, socket.IpAddress("0.0.0.0"), socket.Port(8484))
+
+	w := l.Writer()
+	defer w.Close()
+
+	ss, err := socket.NewServer(log.New(w, "", 0), lss, socket.IpAddress("0.0.0.0"), socket.Port(8484))
 	if err != nil {
 		return
 	}
@@ -43,7 +49,7 @@ func main() {
 
 	// Block until a signal is received.
 	sig := <-c
-	l.Println("[INFO] Shutting down via signal:", sig)
+	l.Infoln("Shutting down via signal:", sig)
 
 	sessions := registries.GetSessionRegistry().GetAll()
 	for _, s := range sessions {
@@ -51,7 +57,7 @@ func main() {
 	}
 }
 
-func registerHandlers(ss *socket.Server, l *log.Logger) {
+func registerHandlers(ss *socket.Server, l logrus.FieldLogger) {
 	hr := handlerRegister(ss, l)
 	hr(handler.OpCodeLogin, &handler.LoginHandler{})
 	hr(handler.OpCodeServerListReRequest, &handler.ServerListHandler{})
@@ -68,7 +74,7 @@ func registerHandlers(ss *socket.Server, l *log.Logger) {
 	hr(handler.OpCodeClientStartError, &handler.ClientStartErrorHandler{})
 }
 
-func handlerRegister(ss *socket.Server, l *log.Logger) func(uint16, request.MapleHandler) {
+func handlerRegister(ss *socket.Server, l logrus.FieldLogger) func(uint16, request.MapleHandler) {
 	return func(op uint16, handler request.MapleHandler) {
 		ss.RegisterHandler(op, request.AdaptHandler(l, handler))
 	}

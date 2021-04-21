@@ -6,6 +6,7 @@ import (
    "atlas-clc/rest/attributes"
    "atlas-clc/socket/response/writer"
    "github.com/gorilla/mux"
+   "github.com/sirupsen/logrus"
    "log"
    "net/http"
    "strconv"
@@ -28,10 +29,10 @@ type SessionAttributes struct {
 }
 
 type SessionResource struct {
-   l *log.Logger
+   l logrus.FieldLogger
 }
 
-func NewSessionResource(l *log.Logger) *SessionResource {
+func NewSessionResource(l logrus.FieldLogger) *SessionResource {
    return &SessionResource{l}
 }
 
@@ -46,7 +47,7 @@ func (s *SessionResource) GetSessions(rw http.ResponseWriter, _ *http.Request) {
 
    err := attributes.ToJSON(response, rw)
    if err != nil {
-      s.l.Println("Error encoding GetSessions response")
+      s.l.WithError(err).Errorf("Error encoding GetSessions response")
       rw.WriteHeader(http.StatusInternalServerError)
    }
 }

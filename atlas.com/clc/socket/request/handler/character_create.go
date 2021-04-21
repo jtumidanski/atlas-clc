@@ -5,7 +5,7 @@ import (
 	"atlas-clc/processors"
 	"atlas-clc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/request"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 const OpCodeCharacterCreate uint16 = 0x16
@@ -98,26 +98,26 @@ func ReadCharacterCreateRequest(reader *request.RequestReader) *CharacterCreateR
 type CharacterCreateHandler struct {
 }
 
-func (h *CharacterCreateHandler) IsValid(l *log.Logger, ms *mapleSession.MapleSession) bool {
+func (h *CharacterCreateHandler) IsValid(l logrus.FieldLogger, ms *mapleSession.MapleSession) bool {
 	v := processors.IsLoggedIn((*ms).AccountId())
 	if !v {
-		l.Printf("[ERROR] attempting to process a [CharacterCreateRequest] when the account %d is not logged in.", (*ms).SessionId())
+		l.Errorf("Attempting to process a [CharacterCreateRequest] when the account %d is not logged in.", (*ms).SessionId())
 	}
 	return v
 }
 
-func (h *CharacterCreateHandler) HandleRequest(l *log.Logger, ms *mapleSession.MapleSession, r *request.RequestReader) {
+func (h *CharacterCreateHandler) HandleRequest(l logrus.FieldLogger, ms *mapleSession.MapleSession, r *request.RequestReader) {
 	p := ReadCharacterCreateRequest(r)
 
 	ca, err := processors.SeedCharacter((*ms).AccountId(), (*ms).WorldId(), p.Name(), p.Job(), p.Face(), p.Hair(), p.HairColor(), p.SkinColor(), p.Gender(), p.Top(), p.Bottom(), p.Shoes(), p.Weapon())
 	if err != nil {
-		l.Println("[ERROR] while seeding character")
+		l.WithError(err).Errorf("While seeding character")
 		return
 	}
 
 	c, err := processors.GetCharacterById(ca.Id())
 	if err != nil {
-		l.Println("[ERROR] retrieving newly seeded character")
+		l.WithError(err).Errorf("Retrieving newly seeded character")
 		return
 	}
 

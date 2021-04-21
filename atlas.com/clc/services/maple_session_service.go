@@ -6,7 +6,7 @@ import (
 	"atlas-clc/registries"
 	"context"
 	"github.com/jtumidanski/atlas-socket/session"
-	"log"
+	"github.com/sirupsen/logrus"
 	"net"
 )
 
@@ -15,11 +15,11 @@ type Service interface {
 }
 
 type mapleSessionService struct {
-	l *log.Logger
+	l logrus.FieldLogger
 	r *registries.SessionRegistry
 }
 
-func NewMapleSessionService(l *log.Logger) Service {
+func NewMapleSessionService(l logrus.FieldLogger) Service {
 	return &mapleSessionService{l, registries.GetSessionRegistry()}
 }
 

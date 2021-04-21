@@ -5,7 +5,7 @@ import (
 	"atlas-clc/processors"
 	"atlas-clc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/request"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 const OpCodeServerStatus uint16 = 0x06
@@ -26,15 +26,15 @@ func ReadServerStatusRequest(reader *request.RequestReader) *ServerStatusRequest
 type ServerStatusHandler struct {
 }
 
-func (h *ServerStatusHandler) IsValid(l *log.Logger, ms *mapleSession.MapleSession) bool {
+func (h *ServerStatusHandler) IsValid(l logrus.FieldLogger, ms *mapleSession.MapleSession) bool {
 	v := processors.IsLoggedIn((*ms).AccountId())
 	if !v {
-		l.Printf("[ERROR] attempting to process a [ServerStatusRequest] when the account %d is not logged in.", (*ms).SessionId())
+		l.Errorf("Attempting to process a [ServerStatusRequest] when the account %d is not logged in.", (*ms).SessionId())
 	}
 	return v
 }
 
-func (h *ServerStatusHandler) HandleRequest(_ *log.Logger, ms *mapleSession.MapleSession, r *request.RequestReader) {
+func (h *ServerStatusHandler) HandleRequest(_ logrus.FieldLogger, ms *mapleSession.MapleSession, r *request.RequestReader) {
 	p := ReadServerStatusRequest(r)
 
 	cs := processors.GetWorldCapacityStatus(p.WorldId())

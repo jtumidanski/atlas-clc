@@ -6,7 +6,7 @@ import (
 	"atlas-clc/processors"
 	"atlas-clc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/request"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 const OpCodeCharacterListAll uint16 = 0x0D
@@ -14,18 +14,18 @@ const OpCodeCharacterListAll uint16 = 0x0D
 type CharacterListAllHandler struct {
 }
 
-func (h *CharacterListAllHandler) IsValid(l *log.Logger, ms *mapleSession.MapleSession) bool {
+func (h *CharacterListAllHandler) IsValid(l logrus.FieldLogger, ms *mapleSession.MapleSession) bool {
 	v := processors.IsLoggedIn((*ms).AccountId())
 	if !v {
-		l.Printf("[ERROR] attempting to process a [CharacterListAlLRequest] when the account %d is not logged in.", (*ms).SessionId())
+		l.Errorf("Attempting to process a [CharacterListAlLRequest] when the account %d is not logged in.", (*ms).SessionId())
 	}
 	return v
 }
 
-func (h *CharacterListAllHandler) HandleRequest(l *log.Logger, ms *mapleSession.MapleSession, _ *request.RequestReader) {
+func (h *CharacterListAllHandler) HandleRequest(l logrus.FieldLogger, ms *mapleSession.MapleSession, _ *request.RequestReader) {
 	ws, err := processors.GetWorlds()
 	if err != nil {
-		l.Println("[ERROR] unable to retrieve worlds")
+		l.WithError(err).Errorf("Unable to retrieve worlds")
 	}
 
 	cm := h.getWorldCharacters((*ms).AccountId(), ws)

@@ -4,20 +4,20 @@ import (
 	"atlas-clc/mapleSession"
 	"atlas-clc/registries"
 	"github.com/jtumidanski/atlas-socket/request"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 type HandlerSupplier struct {
-	l *log.Logger
+	l logrus.FieldLogger
 }
 
 type MapleHandler interface {
-	IsValid(l *log.Logger, s *mapleSession.MapleSession) bool
+	IsValid(l logrus.FieldLogger, s *mapleSession.MapleSession) bool
 
-	HandleRequest(l *log.Logger, s *mapleSession.MapleSession, r *request.RequestReader)
+	HandleRequest(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader)
 }
 
-func AdaptHandler(l *log.Logger, h MapleHandler) func(int, request.RequestReader) {
+func AdaptHandler(l logrus.FieldLogger, h MapleHandler) func(int, request.RequestReader) {
 	return func(sessionId int, r request.RequestReader) {
 		s := registries.GetSessionRegistry().Get(sessionId)
 		if s != nil {
@@ -26,7 +26,7 @@ func AdaptHandler(l *log.Logger, h MapleHandler) func(int, request.RequestReader
 				s.UpdateLastRequest()
 			}
 		} else {
-			l.Printf("[ERROR] unable to locate session %d", sessionId)
+			l.Errorf("Unable to locate session %d", sessionId)
 		}
 	}
 }
