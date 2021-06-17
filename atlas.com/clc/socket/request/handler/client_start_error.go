@@ -21,7 +21,7 @@ func ReadClientStartErrorRequest(reader *request.RequestReader) *ClientStartErro
 	return &ClientStartErrorRequest{message}
 }
 
-func HandleClientStartErrorRequest(l logrus.FieldLogger, ms *session.MapleSession, r *request.RequestReader) {
+func HandleClientStartErrorRequest(l logrus.FieldLogger, ms *session.Model, r *request.RequestReader) {
 	p := ReadClientStartErrorRequest(r)
-	l.Errorf("Client start error for %d. Received %s", (*ms).SessionId(), p.Error())
+	l.Errorf("Client start error for %d. Received %s", ms.SessionId(), p.Error())
 }

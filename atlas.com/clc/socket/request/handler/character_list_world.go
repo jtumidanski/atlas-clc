@@ -33,7 +33,7 @@ func ReadCharacterListWorldRequest(reader *request.RequestReader) *CharacterList
 	}
 }
 
-func HandleCharacterListWorldRequest(l logrus.FieldLogger, ms *session.MapleSession, r *request.RequestReader) {
+func HandleCharacterListWorldRequest(l logrus.FieldLogger, ms *session.Model, r *request.RequestReader) {
 	p := ReadCharacterListWorldRequest(r)
 
 	w, err := world.GetById(p.WorldId())
@@ -43,29 +43,29 @@ func HandleCharacterListWorldRequest(l logrus.FieldLogger, ms *session.MapleSess
 	}
 
 	if w.CapacityStatus() == world.StatusFull {
-		err = (*ms).Announce(writer.WriteWorldCapacityStatus(l)(world.StatusFull))
+		err = ms.Announce(writer.WriteWorldCapacityStatus(l)(world.StatusFull))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to show that world %d is full", w.Id())
 		}
 		return
 	}
 
-	(*ms).SetWorldId(p.WorldId())
-	(*ms).SetChannelId(p.ChannelId())
+	ms.SetWorldId(p.WorldId())
+	ms.SetChannelId(p.ChannelId())
 
-	a, err := account.GetById((*ms).AccountId())
+	a, err := account.GetById(ms.AccountId())
 	if err != nil {
 		l.WithError(err).Errorf("Cannot retrieve account")
 		return
 	}
 
-	cs, err := character.GetForWorld((*ms).AccountId(), p.WorldId())
+	cs, err := character.GetForWorld(ms.AccountId(), p.WorldId())
 	if err != nil {
 		l.WithError(err).Errorf("Cannot retrieve account characters")
 		return
 	}
 
-	err = (*ms).Announce(writer.WriteCharacterList(l)(cs, p.WorldId(), 0, true, a.PIC(), int16(1), a.CharacterSlots()))
+	err = ms.Announce(writer.WriteCharacterList(l)(cs, p.WorldId(), 0, true, a.PIC(), int16(1), a.CharacterSlots()))
 	if err != nil {
 		l.WithError(err).Errorf("Unable to show character list")
 	}

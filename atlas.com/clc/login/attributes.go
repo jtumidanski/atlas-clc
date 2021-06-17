@@ -11,7 +11,7 @@ type dataBody struct {
 }
 
 type attributes struct {
-	SessionId int    `json:"sessionId"`
+	SessionId uint32 `json:"sessionId"`
 	Name      string `json:"name"`
 	Password  string `json:"password"`
 	IpAddress string `json:"ipAddress"`

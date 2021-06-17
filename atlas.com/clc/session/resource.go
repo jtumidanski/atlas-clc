@@ -46,14 +46,14 @@ func HandleLoginError(l logrus.FieldLogger) http.HandlerFunc {
 	}
 }
 
-func getSessionId(l logrus.FieldLogger, r *http.Request) int {
+func getSessionId(l logrus.FieldLogger, r *http.Request) uint32 {
 	vars := mux.Vars(r)
 	value, err := strconv.Atoi(vars["sessionId"])
 	if err != nil {
 		l.Println("Error parsing worldId as integer")
 		return 0
 	}
-	return value
+	return uint32(value)
 }
 
 func getErrorId(l logrus.FieldLogger, r *http.Request) byte {
@@ -66,9 +66,9 @@ func getErrorId(l logrus.FieldLogger, r *http.Request) byte {
 	return byte(value)
 }
 
-func getSessionObject(x MapleSession) *dataBody {
+func getSessionObject(x Model) *dataBody {
 	return &dataBody{
-		Id:   strconv.Itoa(x.SessionId()),
+		Id:   strconv.Itoa(int(x.SessionId())),
 		Type: "Session",
 		Attributes: attributes{
 			AccountId: x.AccountId(),

@@ -12,7 +12,7 @@ import (
 const OpCodeServerRequest uint16 = 0x0B
 const OpCodeServerListReRequest uint16 = 0x04
 
-func HandleServerListRequest(l logrus.FieldLogger, ms *session.MapleSession, _ *request.RequestReader) {
+func HandleServerListRequest(l logrus.FieldLogger, ms *session.Model, _ *request.RequestReader) {
 	ws, err := world.GetAll()
 	if err != nil {
 		l.WithError(err).Errorf("Retrieving worlds")
@@ -43,40 +43,40 @@ func combine(l logrus.FieldLogger, ws []world.Model, cls map[int][]channel.Load)
 	return nws
 }
 
-func respondToSession(l logrus.FieldLogger, ms *session.MapleSession, ws []world.Model) {
+func respondToSession(l logrus.FieldLogger, ms *session.Model, ws []world.Model) {
 	announceServerList(l, ws, ms)
 	announceLastWorld(l, ms)
 	announceRecommendedWorlds(l, ws, ms)
 }
 
-func announceRecommendedWorlds(l logrus.FieldLogger, ws []world.Model, ms *session.MapleSession) {
+func announceRecommendedWorlds(l logrus.FieldLogger, ws []world.Model, ms *session.Model) {
 	var rs = make([]world.Recommendation, 0)
 	for _, x := range ws {
 		if x.Recommended() {
 			rs = append(rs, x.Recommendation())
 		}
 	}
-	err := (*ms).Announce(writer.WriteRecommendedWorlds(l)(rs))
+	err := ms.Announce(writer.WriteRecommendedWorlds(l)(rs))
 	if err != nil {
 		l.WithError(err).Errorf("Unable to issue recommended worlds")
 	}
 }
 
-func announceLastWorld(l logrus.FieldLogger, ms *session.MapleSession) {
-	err := (*ms).Announce(writer.WriteSelectWorld(l)(0))
+func announceLastWorld(l logrus.FieldLogger, ms *session.Model) {
+	err := ms.Announce(writer.WriteSelectWorld(l)(0))
 	if err != nil {
 		l.WithError(err).Errorf("Unable to identify the last world a account was logged into")
 	}
 }
 
-func announceServerList(l logrus.FieldLogger, ws []world.Model, ms *session.MapleSession) {
+func announceServerList(l logrus.FieldLogger, ws []world.Model, ms *session.Model) {
 	for _, x := range ws {
-		err := (*ms).Announce(writer.WriteServerListEntry(l)(x.Id(), x.Name(), x.Flag(), x.EventMessage(), x.ChannelLoad()))
+		err := ms.Announce(writer.WriteServerListEntry(l)(x.Id(), x.Name(), x.Flag(), x.EventMessage(), x.ChannelLoad()))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to write server list entry for %d", x.Id())
 		}
 	}
-	err := (*ms).Announce(writer.WriteServerListEnd(l))
+	err := ms.Announce(writer.WriteServerListEnd(l))
 	if err != nil {
 		l.WithError(err).Errorf("Unable to complete writing the server list")
 	}

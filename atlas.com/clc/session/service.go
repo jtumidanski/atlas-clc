@@ -2,48 +2,52 @@ package session
 
 import (
 	"atlas-clc/character"
-	"github.com/jtumidanski/atlas-socket/session"
 	"github.com/sirupsen/logrus"
 	"net"
 )
 
-type Service interface {
-	session.Service
-}
-
-type mapleSessionService struct {
-	l logrus.FieldLogger
-	r *Registry
-}
-
-func NewMapleSessionService(l logrus.FieldLogger) Service {
-	return &mapleSessionService{l, GetRegistry()}
-}
-
-func (s *mapleSessionService) Create(sessionId int, conn net.Conn) (session.Session, error) {
-	ses := NewSession(sessionId, conn)
-	s.r.Add(&ses)
-	ses.WriteHello()
-	return ses, nil
-}
-
-func (s *mapleSessionService) Get(sessionId int) session.Session {
-	return s.r.Get(sessionId)
-}
-
-func (s *mapleSessionService) GetAll() []session.Session {
-	ss := s.r.GetAll()
-	b := make([]session.Session, len(ss))
-	for i, v := range ss {
-		b[i] = v.(session.Session)
+func Create(l logrus.FieldLogger, r *Registry) func(sessionId uint32, conn net.Conn) {
+	return func(sessionId uint32, conn net.Conn) {
+		l.Debugf("Creating session %d.", sessionId)
+		s := NewSession(sessionId, conn)
+		r.Add(s)
+		s.WriteHello()
 	}
-	return b
 }
 
-func (s *mapleSessionService) Destroy(sessionId int) {
-	ses := s.Get(sessionId).(MapleSession)
+func Decrypt(_ logrus.FieldLogger, r *Registry) func(sessionId uint32, input []byte) []byte {
+	return func(sessionId uint32, input []byte) []byte {
+		s := r.Get(sessionId)
+		if s == nil {
+			return input
+		}
+		if s.ReceiveAESOFB() == nil {
+			return input
+		}
+		return s.ReceiveAESOFB().Decrypt(input, true, true)
+	}
+}
 
-	s.r.Remove(sessionId)
+func DestroyAll(l logrus.FieldLogger, r *Registry) {
+	for _, s := range r.GetAll() {
+		Destroy(l, r)(&s)
+	}
+}
 
-	character.Logout(s.l)(ses.WorldId(), ses.ChannelId(), ses.AccountId(), 0)
+func DestroyById(l logrus.FieldLogger, r *Registry) func(sessionId uint32) {
+	return func(sessionId uint32) {
+		s := r.Get(sessionId)
+		if s == nil {
+			return
+		}
+		Destroy(l, r)(s)
+	}
+}
+
+func Destroy(l logrus.FieldLogger, r *Registry) func(*Model) {
+	return func(s *Model) {
+		l.Debugf("Destroying session %d.", s.SessionId())
+		r.Remove(s.SessionId())
+		character.Logout(l)(s.WorldId(), s.ChannelId(), s.AccountId(), 0)
+	}
 }

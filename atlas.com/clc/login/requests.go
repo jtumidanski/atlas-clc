@@ -10,7 +10,7 @@ const (
 	LoginsResource = account.AccountsService + "logins/"
 )
 
-func CreateLogin(sessionId int, name string, password string, ipAddress string) (r *http.Response, err error) {
+func CreateLogin(sessionId uint32, name string, password string, ipAddress string) (r *http.Response, err error) {
 	i := inputDataContainer{
 		Data: dataBody{
 			Id:   "0",

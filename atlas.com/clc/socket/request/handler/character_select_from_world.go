@@ -30,7 +30,7 @@ func ReadCharacterSelectFromWorldRequest(reader *request.RequestReader) *Charact
 	return &CharacterSelectFromWorldRequest{cid, macs, hwid}
 }
 
-func HandleCharacterSelectFromWorldRequest(l logrus.FieldLogger, ms *session.MapleSession, r *request.RequestReader) {
+func HandleCharacterSelectFromWorldRequest(l logrus.FieldLogger, ms *session.Model, r *request.RequestReader) {
 	p := ReadCharacterSelectFromWorldRequest(r)
 
 	c, err := character.GetById(uint32(p.CharacterId()))
@@ -39,7 +39,7 @@ func HandleCharacterSelectFromWorldRequest(l logrus.FieldLogger, ms *session.Map
 		return
 	}
 
-	w, err := world.GetById((*ms).WorldId())
+	w, err := world.GetById(ms.WorldId())
 	if err != nil {
 		l.WithError(err).Errorf("Unable to retrieve world logged into by session")
 		return
@@ -50,13 +50,13 @@ func HandleCharacterSelectFromWorldRequest(l logrus.FieldLogger, ms *session.Map
 		return
 	}
 
-	ch, err := channel.GetForWorldById((*ms).WorldId(), (*ms).ChannelId())
+	ch, err := channel.GetForWorldById(ms.WorldId(), ms.ChannelId())
 	if err != nil {
 		l.WithError(err).Errorf("Unable to retrieve channel in world")
 		return
 	}
 
-	err = (*ms).Announce(writer.WriteServerIp(l)(ch.IpAddress(), ch.Port(), c.Properties().Id()))
+	err = ms.Announce(writer.WriteServerIp(l)(ch.IpAddress(), ch.Port(), c.Properties().Id()))
 	if err != nil {
 		l.WithError(err).Errorf("Unable to send channel server connection information")
 	}

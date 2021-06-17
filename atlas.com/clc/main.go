@@ -27,13 +27,11 @@ func main() {
 		l.WithError(err).Fatal("Unable to successfully load configuration.")
 	}
 
-	lss := session.NewMapleSessionService(l)
-
-	socket.CreateSocketService(l, lss, ctx, wg)
+	socket.CreateSocketService(l, ctx, wg)
 
 	rest.CreateRestService(l, ctx, wg)
 
-	go tasks.Register(session.NewTimeout(l, lss, time.Second*time.Duration(config.TimeoutTaskInterval)))
+	go tasks.Register(session.NewTimeout(l, time.Second*time.Duration(config.TimeoutTaskInterval)))
 
 	// trap sigterm or interrupt and gracefully shutdown the server
 	c := make(chan os.Signal, 1)
@@ -45,10 +43,7 @@ func main() {
 	cancel()
 	wg.Wait()
 
-	sessions := session.GetRegistry().GetAll()
-	for _, s := range sessions {
-		lss.Destroy(s.SessionId())
-	}
+	session.DestroyAll(l, session.GetRegistry())
 
 	l.Infoln("Service shutdown.")
 }

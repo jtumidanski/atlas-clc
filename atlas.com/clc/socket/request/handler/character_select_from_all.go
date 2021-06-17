@@ -37,7 +37,7 @@ func ReadCharacterSelectFromAll(reader *request.RequestReader) *CharacterSelectF
 	return &CharacterSelectFromAllRequest{cid, wid, macs, hwid}
 }
 
-func HandleCharacterSelectFromAllRequest(l logrus.FieldLogger, ms *session.MapleSession, r *request.RequestReader) {
+func HandleCharacterSelectFromAllRequest(l logrus.FieldLogger, ms *session.Model, r *request.RequestReader) {
 	p := ReadCharacterSelectFromAll(r)
 
 	c, err := character.GetById(uint32(p.CharacterId()))
@@ -49,9 +49,9 @@ func HandleCharacterSelectFromAllRequest(l logrus.FieldLogger, ms *session.Maple
 		l.Errorf("Client supplied world not matching that of the selected character")
 		return
 	}
-	(*ms).SetWorldId(c.Properties().WorldId())
+	ms.SetWorldId(c.Properties().WorldId())
 
-	w, err := world.GetById((*ms).WorldId())
+	w, err := world.GetById(ms.WorldId())
 	if err != nil {
 		l.WithError(err).Errorf("Unable to retrieve world logged into by session")
 		return
@@ -62,13 +62,13 @@ func HandleCharacterSelectFromAllRequest(l logrus.FieldLogger, ms *session.Maple
 		return
 	}
 
-	cs, err := channel.GetAllForWorld((*ms).WorldId())
+	cs, err := channel.GetAllForWorld(ms.WorldId())
 	// initialize global pseudo random generator
 	rand.Seed(time.Now().Unix())
 	ch := cs[rand.Intn(len(cs))]
-	(*ms).SetChannelId(ch.ChannelId())
+	ms.SetChannelId(ch.ChannelId())
 
-	err = (*ms).Announce(writer.WriteServerIp(l)(ch.IpAddress(), ch.Port(), c.Properties().Id()))
+	err = ms.Announce(writer.WriteServerIp(l)(ch.IpAddress(), ch.Port(), c.Properties().Id()))
 	if err != nil {
 		l.WithError(err).Errorf("Unable to send channel server connection information")
 	}

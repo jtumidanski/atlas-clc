@@ -23,11 +23,11 @@ func ReadServerStatusRequest(reader *request.RequestReader) *ServerStatusRequest
 	return &ServerStatusRequest{wid}
 }
 
-func HandleServerStatusRequest(l logrus.FieldLogger, ms *session.MapleSession, r *request.RequestReader) {
+func HandleServerStatusRequest(l logrus.FieldLogger, ms *session.Model, r *request.RequestReader) {
 	p := ReadServerStatusRequest(r)
 
 	cs := world.GetWorldCapacityStatus(p.WorldId())
-	err := (*ms).Announce(writer.WriteWorldCapacityStatus(l)(cs))
+	err := ms.Announce(writer.WriteWorldCapacityStatus(l)(cs))
 	if err != nil {
 		l.WithError(err).Errorf("Unable to issue world capacity status information")
 	}

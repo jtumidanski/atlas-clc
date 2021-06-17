@@ -95,10 +95,10 @@ func ReadCharacterCreateRequest(reader *request.RequestReader) *CharacterCreateR
 	}
 }
 
-func HandleCreateCharacterRequest(l logrus.FieldLogger, ms *session.MapleSession, r *request.RequestReader) {
+func HandleCreateCharacterRequest(l logrus.FieldLogger, ms *session.Model, r *request.RequestReader) {
 	p := ReadCharacterCreateRequest(r)
 
-	ca, err := character.SeedCharacter((*ms).AccountId(), (*ms).WorldId(), p.Name(), p.Job(), p.Face(), p.Hair(), p.HairColor(), p.SkinColor(), p.Gender(), p.Top(), p.Bottom(), p.Shoes(), p.Weapon())
+	ca, err := character.SeedCharacter(ms.AccountId(), ms.WorldId(), p.Name(), p.Job(), p.Face(), p.Hair(), p.HairColor(), p.SkinColor(), p.Gender(), p.Top(), p.Bottom(), p.Shoes(), p.Weapon())
 	if err != nil {
 		l.WithError(err).Errorf("While seeding character")
 		return
@@ -110,7 +110,7 @@ func HandleCreateCharacterRequest(l logrus.FieldLogger, ms *session.MapleSession
 		return
 	}
 
-	err = (*ms).Announce(writer.WriteCharacterViewAddNew(l)(*c))
+	err = ms.Announce(writer.WriteCharacterViewAddNew(l)(*c))
 	if err != nil {
 		l.WithError(err).Errorf("Unable to return to the character view, with the newly created character")
 	}

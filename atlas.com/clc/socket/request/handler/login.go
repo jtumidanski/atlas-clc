@@ -41,11 +41,11 @@ func ReadLoginRequest(reader *request.RequestReader) *LoginRequest {
 	}
 }
 
-func HandleLoginRequest(l logrus.FieldLogger, ms *session.MapleSession, r *request.RequestReader) {
+func HandleLoginRequest(l logrus.FieldLogger, ms *session.Model, r *request.RequestReader) {
 	p := ReadLoginRequest(r)
 
-	ip := (*ms).GetRemoteAddress().String()
-	resp, err := login.CreateLogin((*ms).SessionId(), p.Name(), p.Password(), ip)
+	ip := ms.GetRemoteAddress().String()
+	resp, err := login.CreateLogin(ms.SessionId(), p.Name(), p.Password(), ip)
 	if err != nil {
 		announceSystemError(l, ms)
 		return
@@ -71,29 +71,29 @@ func HandleLoginRequest(l logrus.FieldLogger, ms *session.MapleSession, r *reque
 	authorizeSuccess(l, ms, p.Name())
 }
 
-func authorizeSuccess(l logrus.FieldLogger, ms *session.MapleSession, name string) {
+func authorizeSuccess(l logrus.FieldLogger, ms *session.Model, name string) {
 	a, err := account.GetByName(name)
 	if err == nil {
-		(*ms).SetAccountId(a.Id())
-		err = (*ms).Announce(writer.WriteAuthSuccess(l)(a.Id(), a.Name(), a.Gender(), a.PIC()))
+		ms.SetAccountId(a.Id())
+		err = ms.Announce(writer.WriteAuthSuccess(l)(a.Id(), a.Name(), a.Gender(), a.PIC()))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to show successful authorization for account %d", a.Id())
 		}
 	}
 }
 
-func announceSystemError(l logrus.FieldLogger, ms *session.MapleSession) {
-	err := (*ms).Announce(writer.WriteLoginFailed(l)(SystemError))
+func announceSystemError(l logrus.FieldLogger, ms *session.Model) {
+	err := ms.Announce(writer.WriteLoginFailed(l)(SystemError))
 	if err != nil {
 		l.WithError(err).Errorf("Unable to identify that login has failed")
 	}
 }
 
-func processFirstError(l logrus.FieldLogger, ms *session.MapleSession, data resources.ErrorData) {
+func processFirstError(l logrus.FieldLogger, ms *session.Model, data resources.ErrorData) {
 	r := GetLoginFailedReason(data.Code)
 	if r == DeletedOrBlocked {
 		if data.Detail == "" {
-			err := (*ms).Announce(writer.WriteLoginFailed(l)(DeletedOrBlocked))
+			err := ms.Announce(writer.WriteLoginFailed(l)(DeletedOrBlocked))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to issue login failed due to account being deleted or blocked")
 			}
@@ -103,7 +103,7 @@ func processFirstError(l logrus.FieldLogger, ms *session.MapleSession, data reso
 		reason := data.Meta["reason"]
 		rc, err := strconv.ParseUint(reason, 10, 8)
 		if err != nil {
-			err = (*ms).Announce(writer.WriteLoginFailed(l)(SystemError))
+			err = ms.Announce(writer.WriteLoginFailed(l)(SystemError))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to issue login failed due to system error")
 			}
@@ -113,25 +113,25 @@ func processFirstError(l logrus.FieldLogger, ms *session.MapleSession, data reso
 		if tb, ok := data.Meta["tempBan"]; ok {
 			until, err := strconv.ParseUint(tb, 10, 64)
 			if err != nil {
-				err = (*ms).Announce(writer.WriteLoginFailed(l)(SystemError))
+				err = ms.Announce(writer.WriteLoginFailed(l)(SystemError))
 				if err != nil {
 					l.WithError(err).Errorf("Unable to issue login failed due to system error")
 				}
 				return
 			}
-			err = (*ms).Announce(writer.WriteTemporaryBan(l)(until, byte(rc)))
+			err = ms.Announce(writer.WriteTemporaryBan(l)(until, byte(rc)))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to issue login failed due to temporary ban")
 			}
 			return
 		}
-		err = (*ms).Announce(writer.WritePermanentBan(l))
+		err = ms.Announce(writer.WritePermanentBan(l))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to issue login failed due to permanent ban")
 		}
 		return
 	}
-	err := (*ms).Announce(writer.WriteLoginFailed(l)(r))
+	err := ms.Announce(writer.WriteLoginFailed(l)(r))
 	if err != nil {
 		l.WithError(err).Errorf("Unable to issue login failed due to reason %d", r)
 	}
