@@ -1,27 +1,37 @@
 package request
 
 import (
+	"atlas-clc/account"
 	"atlas-clc/session"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/sirupsen/logrus"
 )
 
-type HandlerSupplier struct {
-	l logrus.FieldLogger
+type MessageValidator func(l logrus.FieldLogger, s *session.MapleSession) bool
+
+func NoOpValidator(_ logrus.FieldLogger, _ *session.MapleSession) bool {
+	return true
 }
 
-type MapleHandler interface {
-	IsValid(l logrus.FieldLogger, s *session.MapleSession) bool
-
-	HandleRequest(l logrus.FieldLogger, s *session.MapleSession, r *request.RequestReader)
+func LoggedInValidator(l logrus.FieldLogger, s *session.MapleSession) bool {
+	v := account.IsLoggedIn((*s).AccountId())
+	if !v {
+		l.Errorf("Attempting to process a request when the account %d is not logged in.", (*s).SessionId())
+	}
+	return v
 }
 
-func AdaptHandler(l logrus.FieldLogger, h MapleHandler) func(int, request.RequestReader) {
+type MessageHandler func(l logrus.FieldLogger, s *session.MapleSession, r *request.RequestReader)
+
+func NoOpHandler(_ logrus.FieldLogger, _ *session.MapleSession, _ *request.RequestReader) {
+}
+
+func AdaptHandler(l logrus.FieldLogger, v MessageValidator, h MessageHandler) func(int, request.RequestReader) {
 	return func(sessionId int, r request.RequestReader) {
 		s := session.GetRegistry().Get(sessionId)
 		if s != nil {
-			if h.IsValid(l, &s) {
-				h.HandleRequest(l, &s, &r)
+			if v(l, &s) {
+				h(l, &s, &r)
 				s.UpdateLastRequest()
 			}
 		} else {

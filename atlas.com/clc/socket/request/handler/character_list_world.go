@@ -33,18 +33,7 @@ func ReadCharacterListWorldRequest(reader *request.RequestReader) *CharacterList
 	}
 }
 
-type CharacterListWorldHandler struct {
-}
-
-func (h *CharacterListWorldHandler) IsValid(l logrus.FieldLogger, ms *session.MapleSession) bool {
-	v := account.IsLoggedIn((*ms).AccountId())
-	if !v {
-		l.Errorf("Attempting to process a [CharacterListWorldRequest] when the account %d is not logged in.", (*ms).SessionId())
-	}
-	return v
-}
-
-func (h *CharacterListWorldHandler) HandleRequest(l logrus.FieldLogger, ms *session.MapleSession, r *request.RequestReader) {
+func HandleCharacterListWorldRequest(l logrus.FieldLogger, ms *session.MapleSession, r *request.RequestReader) {
 	p := ReadCharacterListWorldRequest(r)
 
 	w, err := world.GetById(p.WorldId())

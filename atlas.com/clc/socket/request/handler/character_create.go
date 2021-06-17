@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"atlas-clc/account"
 	"atlas-clc/character"
 	"atlas-clc/session"
 	"atlas-clc/socket/response/writer"
@@ -96,18 +95,7 @@ func ReadCharacterCreateRequest(reader *request.RequestReader) *CharacterCreateR
 	}
 }
 
-type CharacterCreateHandler struct {
-}
-
-func (h *CharacterCreateHandler) IsValid(l logrus.FieldLogger, ms *session.MapleSession) bool {
-	v := account.IsLoggedIn((*ms).AccountId())
-	if !v {
-		l.Errorf("Attempting to process a [CharacterCreateRequest] when the account %d is not logged in.", (*ms).SessionId())
-	}
-	return v
-}
-
-func (h *CharacterCreateHandler) HandleRequest(l logrus.FieldLogger, ms *session.MapleSession, r *request.RequestReader) {
+func HandleCreateCharacterRequest(l logrus.FieldLogger, ms *session.MapleSession, r *request.RequestReader) {
 	p := ReadCharacterCreateRequest(r)
 
 	ca, err := character.SeedCharacter((*ms).AccountId(), (*ms).WorldId(), p.Name(), p.Job(), p.Face(), p.Hair(), p.HairColor(), p.SkinColor(), p.Gender(), p.Top(), p.Bottom(), p.Shoes(), p.Weapon())

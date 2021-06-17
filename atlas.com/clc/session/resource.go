@@ -33,14 +33,15 @@ func HandleLoginError(l logrus.FieldLogger) http.HandlerFunc {
 		errorId := getErrorId(l, r)
 
 		ses := GetRegistry().Get(sessionId)
-		if ses != nil {
-			err := ses.Announce(writer.WriteLoginFailed(l)(errorId))
-			if err != nil {
-				l.WithError(err).Errorf("Unable to issue login failed due to reason %d", errorId)
-			}
-			w.WriteHeader(http.StatusNoContent)
-		} else {
+		if ses == nil {
 			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
+		err := ses.Announce(writer.WriteLoginFailed(l)(errorId))
+		if err != nil {
+			l.WithError(err).Errorf("Unable to issue login failed due to reason %d", errorId)
 		}
 	}
 }

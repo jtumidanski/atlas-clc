@@ -41,20 +41,13 @@ func ReadLoginRequest(reader *request.RequestReader) *LoginRequest {
 	}
 }
 
-type LoginHandler struct {
-}
-
-func (h *LoginHandler) IsValid(_ logrus.FieldLogger, _ *session.MapleSession) bool {
-	return true
-}
-
-func (h *LoginHandler) HandleRequest(l logrus.FieldLogger, ms *session.MapleSession, r *request.RequestReader) {
+func HandleLoginRequest(l logrus.FieldLogger, ms *session.MapleSession, r *request.RequestReader) {
 	p := ReadLoginRequest(r)
 
 	ip := (*ms).GetRemoteAddress().String()
 	resp, err := login.CreateLogin((*ms).SessionId(), p.Name(), p.Password(), ip)
 	if err != nil {
-		h.announceSystemError(l, ms)
+		announceSystemError(l, ms)
 		return
 	}
 
@@ -62,23 +55,23 @@ func (h *LoginHandler) HandleRequest(l logrus.FieldLogger, ms *session.MapleSess
 		eb := &resources.ErrorListDataContainer{}
 		err = requests.ProcessErrorResponse(resp, eb)
 		if err != nil {
-			h.announceSystemError(l, ms)
+			announceSystemError(l, ms)
 			return
 		}
 
 		if len(eb.Errors) > 0 {
-			h.processFirstError(l, ms, eb.Errors[0])
+			processFirstError(l, ms, eb.Errors[0])
 			return
 		}
 
-		h.announceSystemError(l, ms)
+		announceSystemError(l, ms)
 		return
 	}
 
-	h.authorizeSuccess(l, ms, p.Name())
+	authorizeSuccess(l, ms, p.Name())
 }
 
-func (h *LoginHandler) authorizeSuccess(l logrus.FieldLogger, ms *session.MapleSession, name string) {
+func authorizeSuccess(l logrus.FieldLogger, ms *session.MapleSession, name string) {
 	a, err := account.GetByName(name)
 	if err == nil {
 		(*ms).SetAccountId(a.Id())
@@ -89,14 +82,14 @@ func (h *LoginHandler) authorizeSuccess(l logrus.FieldLogger, ms *session.MapleS
 	}
 }
 
-func (h *LoginHandler) announceSystemError(l logrus.FieldLogger, ms *session.MapleSession) {
+func announceSystemError(l logrus.FieldLogger, ms *session.MapleSession) {
 	err := (*ms).Announce(writer.WriteLoginFailed(l)(SystemError))
 	if err != nil {
 		l.WithError(err).Errorf("Unable to identify that login has failed")
 	}
 }
 
-func (h LoginHandler) processFirstError(l logrus.FieldLogger, ms *session.MapleSession, data resources.ErrorData) {
+func processFirstError(l logrus.FieldLogger, ms *session.MapleSession, data resources.ErrorData) {
 	r := GetLoginFailedReason(data.Code)
 	if r == DeletedOrBlocked {
 		if data.Detail == "" {

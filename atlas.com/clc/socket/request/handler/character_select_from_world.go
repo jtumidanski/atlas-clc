@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"atlas-clc/account"
 	"atlas-clc/channel"
 	"atlas-clc/character"
 	"atlas-clc/session"
@@ -31,18 +30,7 @@ func ReadCharacterSelectFromWorldRequest(reader *request.RequestReader) *Charact
 	return &CharacterSelectFromWorldRequest{cid, macs, hwid}
 }
 
-type CharacterSelectFromWorldHandler struct {
-}
-
-func (h *CharacterSelectFromWorldHandler) IsValid(l logrus.FieldLogger, ms *session.MapleSession) bool {
-	v := account.IsLoggedIn((*ms).AccountId())
-	if !v {
-		l.Errorf("Attempting to process a [CharacterSelectFromWorldRequest] when the account %d is not logged in.", (*ms).SessionId())
-	}
-	return v
-}
-
-func (h *CharacterSelectFromWorldHandler) HandleRequest(l logrus.FieldLogger, ms *session.MapleSession, r *request.RequestReader) {
+func HandleCharacterSelectFromWorldRequest(l logrus.FieldLogger, ms *session.MapleSession, r *request.RequestReader) {
 	p := ReadCharacterSelectFromWorldRequest(r)
 
 	c, err := character.GetById(uint32(p.CharacterId()))

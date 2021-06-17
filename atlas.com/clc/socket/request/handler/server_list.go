@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"atlas-clc/account"
 	"atlas-clc/channel"
 	"atlas-clc/session"
 	"atlas-clc/socket/response/writer"
@@ -13,18 +12,7 @@ import (
 const OpCodeServerRequest uint16 = 0x0B
 const OpCodeServerListReRequest uint16 = 0x04
 
-type ServerListHandler struct {
-}
-
-func (h *ServerListHandler) IsValid(l logrus.FieldLogger, ms *session.MapleSession) bool {
-	v := account.IsLoggedIn((*ms).AccountId())
-	if !v {
-		l.Errorf("Attempting to process a [ServerListRequest] when the account %d is not logged in.", (*ms).SessionId())
-	}
-	return v
-}
-
-func (h *ServerListHandler) HandleRequest(l logrus.FieldLogger, ms *session.MapleSession, _ *request.RequestReader) {
+func HandleServerListRequest(l logrus.FieldLogger, ms *session.MapleSession, _ *request.RequestReader) {
 	ws, err := world.GetAll()
 	if err != nil {
 		l.WithError(err).Errorf("Retrieving worlds")
@@ -37,11 +25,11 @@ func (h *ServerListHandler) HandleRequest(l logrus.FieldLogger, ms *session.Mapl
 		return
 	}
 
-	nws := h.combine(l, ws, cls)
-	h.respondToSession(l, ms, nws)
+	nws := combine(l, ws, cls)
+	respondToSession(l, ms, nws)
 }
 
-func (h *ServerListHandler) combine(l logrus.FieldLogger, ws []world.Model, cls map[int][]channel.Load) []world.Model {
+func combine(l logrus.FieldLogger, ws []world.Model, cls map[int][]channel.Load) []world.Model {
 	var nws = make([]world.Model, 0)
 
 	for _, x := range ws {
@@ -55,13 +43,13 @@ func (h *ServerListHandler) combine(l logrus.FieldLogger, ws []world.Model, cls 
 	return nws
 }
 
-func (h *ServerListHandler) respondToSession(l logrus.FieldLogger, ms *session.MapleSession, ws []world.Model) {
-	h.announceServerList(l, ws, ms)
-	h.announceLastWorld(l, ms)
-	h.announceRecommendedWorlds(l, ws, ms)
+func respondToSession(l logrus.FieldLogger, ms *session.MapleSession, ws []world.Model) {
+	announceServerList(l, ws, ms)
+	announceLastWorld(l, ms)
+	announceRecommendedWorlds(l, ws, ms)
 }
 
-func (h *ServerListHandler) announceRecommendedWorlds(l logrus.FieldLogger, ws []world.Model, ms *session.MapleSession) {
+func announceRecommendedWorlds(l logrus.FieldLogger, ws []world.Model, ms *session.MapleSession) {
 	var rs = make([]world.Recommendation, 0)
 	for _, x := range ws {
 		if x.Recommended() {
@@ -74,14 +62,14 @@ func (h *ServerListHandler) announceRecommendedWorlds(l logrus.FieldLogger, ws [
 	}
 }
 
-func (h *ServerListHandler) announceLastWorld(l logrus.FieldLogger, ms *session.MapleSession) {
+func announceLastWorld(l logrus.FieldLogger, ms *session.MapleSession) {
 	err := (*ms).Announce(writer.WriteSelectWorld(l)(0))
 	if err != nil {
 		l.WithError(err).Errorf("Unable to identify the last world a account was logged into")
 	}
 }
 
-func (h *ServerListHandler) announceServerList(l logrus.FieldLogger, ws []world.Model, ms *session.MapleSession) {
+func announceServerList(l logrus.FieldLogger, ws []world.Model, ms *session.MapleSession) {
 	for _, x := range ws {
 		err := (*ms).Announce(writer.WriteServerListEntry(l)(x.Id(), x.Name(), x.Flag(), x.EventMessage(), x.ChannelLoad()))
 		if err != nil {

@@ -5,12 +5,9 @@ import (
 	"atlas-clc/logger"
 	"atlas-clc/rest"
 	"atlas-clc/session"
-	"atlas-clc/socket/request"
-	"atlas-clc/socket/request/handler"
+	"atlas-clc/socket"
 	"atlas-clc/tasks"
 	"context"
-	"github.com/jtumidanski/atlas-socket"
-	"github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
 	"sync"
@@ -32,13 +29,7 @@ func main() {
 
 	lss := session.NewMapleSessionService(l)
 
-	ss, err := socket.NewServer(l, lss, socket.IpAddress("0.0.0.0"), socket.Port(8484))
-	if err != nil {
-		return
-	}
-
-	registerHandlers(ss, l)
-	go ss.Run()
+	socket.CreateSocketService(l, lss, ctx, wg)
 
 	rest.CreateRestService(l, ctx, wg)
 
@@ -60,27 +51,4 @@ func main() {
 	}
 
 	l.Infoln("Service shutdown.")
-}
-
-func registerHandlers(ss *socket.Server, l logrus.FieldLogger) {
-	hr := handlerRegister(ss, l)
-	hr(handler.OpCodeLogin, &handler.LoginHandler{})
-	hr(handler.OpCodeServerListReRequest, &handler.ServerListHandler{})
-	hr(handler.OpCodeCharacterListWorld, &handler.CharacterListWorldHandler{})
-	hr(handler.OpCodeServerStatus, &handler.ServerStatusHandler{})
-	hr(handler.OpCodeServerRequest, &handler.ServerListHandler{})
-	hr(handler.OpCodeClearWorldChannel, &handler.ClearWorldChannelHandler{})
-	hr(handler.OpCodeCharacterListAll, &handler.CharacterListAllHandler{})
-	hr(handler.OpCodeCharacterSelectFromAll, &handler.CharacterSelectFromAllHandler{})
-	hr(handler.OpCodeCharacterSelectFromWorld, &handler.CharacterSelectFromWorldHandler{})
-	hr(handler.OpCodeCharacterCheckName, &handler.CharacterCheckNameHandler{})
-	hr(handler.OpCodeCharacterCreate, &handler.CharacterCreateHandler{})
-	hr(handler.OpCodePong, &handler.PongHandler{})
-	hr(handler.OpCodeClientStartError, &handler.ClientStartErrorHandler{})
-}
-
-func handlerRegister(ss *socket.Server, l logrus.FieldLogger) func(uint16, request.MapleHandler) {
-	return func(op uint16, handler request.MapleHandler) {
-		ss.RegisterHandler(op, request.AdaptHandler(l, handler))
-	}
 }
