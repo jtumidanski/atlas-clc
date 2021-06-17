@@ -79,7 +79,7 @@ func (h *LoginHandler) HandleRequest(_ logrus.FieldLogger, ms *session.MapleSess
 }
 
 func (h *LoginHandler) authorizeSuccess(ms *session.MapleSession, name string) {
-	a, err := account.GetAccountByName(name)
+	a, err := account.GetByName(name)
 	if err == nil {
 		(*ms).SetAccountId(a.Id())
 		(*ms).Announce(writer.WriteAuthSuccess(a.Id(), a.Name(), a.Gender(), a.PIC()))

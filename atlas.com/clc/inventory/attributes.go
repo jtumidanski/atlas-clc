@@ -16,23 +16,23 @@ var equipmentIncludes = []response.ConditionalMapperProvider{
 	transformEquipmentStatistics,
 }
 
-type InventoryDataContainer struct {
+type dataContainer struct {
 	data     response.DataSegment
 	included response.DataSegment
 }
 
-type InventoryData struct {
-	Id         string              `json:"id"`
-	Type       string              `json:"type"`
-	Attributes InventoryAttributes `json:"attributes"`
+type dataBody struct {
+	Id         string     `json:"id"`
+	Type       string     `json:"type"`
+	Attributes attributes `json:"attributes"`
 }
 
-type InventoryAttributes struct {
+type attributes struct {
 	Type     string `json:"type"`
 	Capacity int    `json:"capacity"`
 }
 
-func (c *InventoryDataContainer) UnmarshalJSON(data []byte) error {
+func (c *dataContainer) UnmarshalJSON(data []byte) error {
 	d, i, err := response.UnmarshalRoot(data, response.MapperFunc(EmptyInventoryData), equipmentIncludes...)
 	if err != nil {
 		return err
@@ -43,34 +43,34 @@ func (c *InventoryDataContainer) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (c *InventoryDataContainer) Data() *InventoryData {
+func (c *dataContainer) Data() *dataBody {
 	if len(c.data) >= 1 {
-		return c.data[0].(*InventoryData)
+		return c.data[0].(*dataBody)
 	}
 	return nil
 }
 
-func (c *InventoryDataContainer) DataList() []InventoryData {
-	var r = make([]InventoryData, 0)
+func (c *dataContainer) DataList() []dataBody {
+	var r = make([]dataBody, 0)
 	for _, x := range c.data {
-		r = append(r, *x.(*InventoryData))
+		r = append(r, *x.(*dataBody))
 	}
 	return r
 }
 
-func (c *InventoryDataContainer) GetIncludedEquippedItems() []equipment.EquipmentData {
-	var e = make([]equipment.EquipmentData, 0)
+func (c *dataContainer) GetIncludedEquippedItems() []equipment.DataBody {
+	var e = make([]equipment.DataBody, 0)
 	for _, x := range c.included {
-		if val, ok := x.(*equipment.EquipmentData); ok && val.Attributes.Slot < 0 {
+		if val, ok := x.(*equipment.DataBody); ok && val.Attributes.Slot < 0 {
 			e = append(e, *val)
 		}
 	}
 	return e
 }
 
-func (c *InventoryDataContainer) GetEquipmentStatistics(id int) *equipment.EquipmentStatisticsAttributes {
+func (c *dataContainer) GetEquipmentStatistics(id int) *equipment.StatisticsAttributes {
 	for _, x := range c.included {
-		if val, ok := x.(*equipment.EquipmentStatisticsData); ok {
+		if val, ok := x.(*equipment.StatisticsDataBody); ok {
 			eid, err := strconv.Atoi(val.Id)
 			if err == nil && eid == id {
 				return &val.Attributes
@@ -89,5 +89,5 @@ func transformEquipmentStatistics() (string, response.ObjectMapper) {
 }
 
 func EmptyInventoryData() interface{} {
-	return &InventoryData{}
+	return &dataBody{}
 }

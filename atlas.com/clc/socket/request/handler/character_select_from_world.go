@@ -45,7 +45,7 @@ func (h *CharacterSelectFromWorldHandler) IsValid(l logrus.FieldLogger, ms *sess
 func (h *CharacterSelectFromWorldHandler) HandleRequest(l logrus.FieldLogger, ms *session.MapleSession, r *request.RequestReader) {
 	p := ReadCharacterSelectFromWorldRequest(r)
 
-	c, err := character.GetCharacterById(uint32(p.CharacterId()))
+	c, err := character.GetById(uint32(p.CharacterId()))
 	if err != nil {
 		l.WithError(err).Errorf("Unable to retrieve selected character by id")
 		return
@@ -62,11 +62,11 @@ func (h *CharacterSelectFromWorldHandler) HandleRequest(l logrus.FieldLogger, ms
 		return
 	}
 
-	ch, err := channel.GetChannelForWorld((*ms).WorldId(), (*ms).ChannelId())
+	ch, err := channel.GetForWorldById((*ms).WorldId(), (*ms).ChannelId())
 	if err != nil {
 		l.WithError(err).Errorf("Unable to retrieve channel in world")
 		return
 	}
 
-	(*ms).Announce(writer.WriteServerIp(ch.IpAddress(), ch.Port(), c.Attributes().Id()))
+	(*ms).Announce(writer.WriteServerIp(ch.IpAddress(), ch.Port(), c.Properties().Id()))
 }

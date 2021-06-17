@@ -1,7 +1,7 @@
 package blocked_name
 
-func GetBlockedName(name string) (string, error) {
-	a, err := GetBlockedNamesByName(name)
+func GetByName(name string) (string, error) {
+	a, err := requestByName(name)
 	if err != nil {
 		return "", err
 	}
@@ -12,7 +12,7 @@ func GetBlockedName(name string) (string, error) {
 }
 
 func IsBlockedName(name string) (bool, error) {
-	n, err := GetBlockedName(name)
+	n, err := GetByName(name)
 	if err != nil {
 		return true, err
 	}

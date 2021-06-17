@@ -28,23 +28,23 @@ func WriteCharacter(w *response.Writer, character character.Model, viewAll bool)
 	if !viewAll {
 		w.WriteByte(0)
 	}
-	if character.Attributes().Gm() || character.Attributes().GmJob() {
+	if character.Properties().Gm() || character.Properties().GmJob() {
 		w.WriteByte(0)
 		return
 	}
 	w.WriteByte(1) // world rank enabled (next 4 ints are not sent if disabled) Short??
-	w.WriteInt(uint32(character.Attributes().Rank()))
-	w.WriteInt(uint32(character.Attributes().RankMove()))
-	w.WriteInt(uint32(character.Attributes().JobRank()))
-	w.WriteInt(uint32(character.Attributes().JobRankMove()))
+	w.WriteInt(uint32(character.Properties().Rank()))
+	w.WriteInt(uint32(character.Properties().RankMove()))
+	w.WriteInt(uint32(character.Properties().JobRank()))
+	w.WriteInt(uint32(character.Properties().JobRankMove()))
 }
 
 func WriteCharacterLook(w *response.Writer, character character.Model, mega bool) {
-	w.WriteByte(character.Attributes().Gender())
-	w.WriteByte(character.Attributes().SkinColor())
-	w.WriteInt(character.Attributes().Face())
+	w.WriteByte(character.Properties().Gender())
+	w.WriteByte(character.Properties().SkinColor())
+	w.WriteInt(character.Properties().Face())
 	w.WriteBool(!mega)
-	w.WriteInt(character.Attributes().Hair())
+	w.WriteInt(character.Properties().Hair())
 	WriteCharacterEquipment(w, character)
 }
 
@@ -119,9 +119,9 @@ func writeEmptyPetId(w *response.Writer) {
 }
 
 func WriteCharacterStatistics(w *response.Writer, character character.Model) {
-	w.WriteInt(character.Attributes().Id())
+	w.WriteInt(character.Properties().Id())
 
-	name := character.Attributes().Name()
+	name := character.Properties().Name()
 	if len(name) > 13 {
 		name = name[:13]
 	}
@@ -131,34 +131,34 @@ func WriteCharacterStatistics(w *response.Writer, character character.Model) {
 		w.WriteByte(0x0)
 	}
 
-	w.WriteByte(character.Attributes().Gender())
-	w.WriteByte(character.Attributes().SkinColor())
-	w.WriteInt(character.Attributes().Face())
-	w.WriteInt(character.Attributes().Hair())
+	w.WriteByte(character.Properties().Gender())
+	w.WriteByte(character.Properties().SkinColor())
+	w.WriteInt(character.Properties().Face())
+	w.WriteInt(character.Properties().Hair())
 	writeForEachPet(w, character.Pets(), writePetId, writeEmptyPetId)
-	w.WriteByte(character.Attributes().Level())
-	w.WriteShort(character.Attributes().JobId())
-	w.WriteShort(character.Attributes().Strength())
-	w.WriteShort(character.Attributes().Dexterity())
-	w.WriteShort(character.Attributes().Intelligence())
-	w.WriteShort(character.Attributes().Luck())
-	w.WriteShort(character.Attributes().Hp())
-	w.WriteShort(character.Attributes().MaxHp())
-	w.WriteShort(character.Attributes().Mp())
-	w.WriteShort(character.Attributes().MaxMp())
-	w.WriteShort(character.Attributes().Ap())
+	w.WriteByte(character.Properties().Level())
+	w.WriteShort(character.Properties().JobId())
+	w.WriteShort(character.Properties().Strength())
+	w.WriteShort(character.Properties().Dexterity())
+	w.WriteShort(character.Properties().Intelligence())
+	w.WriteShort(character.Properties().Luck())
+	w.WriteShort(character.Properties().Hp())
+	w.WriteShort(character.Properties().MaxHp())
+	w.WriteShort(character.Properties().Mp())
+	w.WriteShort(character.Properties().MaxMp())
+	w.WriteShort(character.Properties().Ap())
 
-	if character.Attributes().HasSPTable() {
+	if character.Properties().HasSPTable() {
 		WriteRemainingSkillInfo(w, character)
 	} else {
-		w.WriteShort(character.Attributes().RemainingSp())
+		w.WriteShort(character.Properties().RemainingSp())
 	}
 
-	w.WriteInt(character.Attributes().Experience())
-	w.WriteShort(uint16(character.Attributes().Fame()))
-	w.WriteInt(character.Attributes().GachaponExperience())
-	w.WriteInt(character.Attributes().MapId())
-	w.WriteByte(character.Attributes().SpawnPoint())
+	w.WriteInt(character.Properties().Experience())
+	w.WriteShort(uint16(character.Properties().Fame()))
+	w.WriteInt(character.Properties().GachaponExperience())
+	w.WriteInt(character.Properties().MapId())
+	w.WriteByte(character.Properties().SpawnPoint())
 	w.WriteInt(0)
 }
 

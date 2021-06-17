@@ -5,13 +5,13 @@ import (
 	"io/ioutil"
 )
 
-func (c *ConfigurationRegistry) loadConfiguration() error {
+func (c *Registry) loadConfiguration() error {
 	yamlFile, err := ioutil.ReadFile("config.yaml")
 	if err != nil {
 		return err
 	}
 
-	con := &Configuration{}
+	con := &Model{}
 	err = yaml.Unmarshal(yamlFile, con)
 	if err != nil {
 		return err

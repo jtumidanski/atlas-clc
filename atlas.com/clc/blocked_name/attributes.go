@@ -2,21 +2,21 @@ package blocked_name
 
 import "atlas-clc/rest/response"
 
-type BlockedNameDataContainer struct {
+type dataContainer struct {
 	data response.DataSegment
 }
 
-type BlockedNameData struct {
-	Id         string                `json:"id"`
-	Type       string                `json:"type"`
-	Attributes BlockedNameAttributes `json:"attributes"`
+type dataBody struct {
+	Id         string     `json:"id"`
+	Type       string     `json:"type"`
+	Attributes attributes `json:"attributes"`
 }
 
-type BlockedNameAttributes struct {
+type attributes struct {
 	Name string `json:"name"`
 }
 
-func (b *BlockedNameDataContainer) UnmarshalJSON(data []byte) error {
+func (b *dataContainer) UnmarshalJSON(data []byte) error {
 	d, _, err := response.UnmarshalRoot(data, response.MapperFunc(EmptyBlockedNameData))
 	if err != nil {
 		return err
@@ -26,21 +26,21 @@ func (b *BlockedNameDataContainer) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (b *BlockedNameDataContainer) Data() *BlockedNameData {
+func (b *dataContainer) Data() *dataBody {
 	if len(b.data) >= 1 {
-		return b.data[0].(*BlockedNameData)
+		return b.data[0].(*dataBody)
 	}
 	return nil
 }
 
-func (b *BlockedNameDataContainer) DataList() []BlockedNameData {
-	var r = make([]BlockedNameData, 0)
+func (b *dataContainer) DataList() []dataBody {
+	var r = make([]dataBody, 0)
 	for _, x := range b.data {
-		r = append(r, *x.(*BlockedNameData))
+		r = append(r, *x.(*dataBody))
 	}
 	return r
 }
 
 func EmptyBlockedNameData() interface{} {
-	return &BlockedNameData{}
+	return &dataBody{}
 }

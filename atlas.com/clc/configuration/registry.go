@@ -4,17 +4,17 @@ import (
 	"sync"
 )
 
-type ConfigurationRegistry struct {
-	c *Configuration
+type Registry struct {
+	c *Model
 	e error
 }
 
 var configurationRegistryOnce sync.Once
-var configurationRegistry *ConfigurationRegistry
+var configurationRegistry *Registry
 
-func GetConfiguration() (*Configuration, error) {
+func GetConfiguration() (*Model, error) {
 	configurationRegistryOnce.Do(func() {
-		configurationRegistry = &ConfigurationRegistry{}
+		configurationRegistry = &Registry{}
 		err := configurationRegistry.loadConfiguration()
 		configurationRegistry.e = err
 	})

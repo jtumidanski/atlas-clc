@@ -13,8 +13,8 @@ const (
 	CharacterEquippedItems             = CharactersInventoryResource + "?type=equip&include=inventoryItems,equipmentStatistics"
 )
 
-func requestEquippedItemsForCharacter(characterId uint32) (*InventoryDataContainer, error) {
-	ar := &InventoryDataContainer{}
+func requestEquippedItemsForCharacter(characterId uint32) (*dataContainer, error) {
+	ar := &dataContainer{}
 	err := requests.Get(fmt.Sprintf(CharacterEquippedItems, characterId), ar)
 	if err != nil {
 		return nil, err

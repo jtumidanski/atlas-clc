@@ -4,7 +4,7 @@ import (
    "strconv"
 )
 
-func GetAccountByName(name string) (*Model, error) {
+func GetByName(name string) (*Model, error) {
    resp, err := requestAccountByName(name)
    if err != nil {
       return nil, err
@@ -20,7 +20,7 @@ func GetAccountByName(name string) (*Model, error) {
    return &a, nil
 }
 
-func GetAccountById(id uint32) (*Model, error) {
+func GetById(id uint32) (*Model, error) {
    resp, err := requestAccountById(id)
    if err != nil {
       return nil, err
@@ -37,7 +37,7 @@ func GetAccountById(id uint32) (*Model, error) {
 }
 
 func IsLoggedIn(id uint32) bool {
-   a, err := GetAccountById(id)
+   a, err := GetById(id)
    if err != nil {
       return false
    } else if a.LoggedIn() != 0 {
@@ -47,7 +47,7 @@ func IsLoggedIn(id uint32) bool {
    }
 }
 
-func makeAccount(id uint32, att AccountAttributes) Model {
+func makeAccount(id uint32, att attributes) Model {
    return NewAccountBuilder().
       SetId(id).
       SetPassword(att.Password).

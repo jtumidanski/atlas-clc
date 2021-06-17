@@ -116,7 +116,7 @@ func (h *CharacterCreateHandler) HandleRequest(l logrus.FieldLogger, ms *session
 		return
 	}
 
-	c, err := character.GetCharacterById(ca.Id())
+	c, err := character.GetById(ca.Id())
 	if err != nil {
 		l.WithError(err).Errorf("Retrieving newly seeded character")
 		return

@@ -8,13 +8,13 @@ import (
 )
 
 type Model struct {
-	attributes Attributes
+	properties Properties
 	equipment  []inventory.EquippedItem
 	pets       []pet.Model
 }
 
-func (c Model) Attributes() Attributes {
-	return c.attributes
+func (c Model) Properties() Properties {
+	return c.properties
 }
 
 func (c Model) Pets() []pet.Model {
@@ -25,11 +25,11 @@ func (c Model) Equipment() []inventory.EquippedItem {
 	return c.equipment
 }
 
-func NewCharacter(attributes Attributes, equipment []inventory.EquippedItem, pets []pet.Model) Model {
+func NewCharacter(attributes Properties, equipment []inventory.EquippedItem, pets []pet.Model) Model {
 	return Model{attributes, equipment, pets}
 }
 
-type Attributes struct {
+type Properties struct {
 	id                 uint32
 	worldId            byte
 	name               string
@@ -62,99 +62,99 @@ type Attributes struct {
 	jobRankMove        int
 }
 
-func (a Attributes) Gm() bool {
+func (a Properties) Gm() bool {
 	return a.gm
 }
 
-func (a Attributes) GmJob() bool {
+func (a Properties) GmJob() bool {
 	return a.gmJob
 }
 
-func (a Attributes) Rank() int {
+func (a Properties) Rank() int {
 	return a.rank
 }
 
-func (a Attributes) RankMove() int {
+func (a Properties) RankMove() int {
 	return a.rankMove
 }
 
-func (a Attributes) JobRank() int {
+func (a Properties) JobRank() int {
 	return a.jobRank
 }
 
-func (a Attributes) JobRankMove() int {
+func (a Properties) JobRankMove() int {
 	return a.jobRankMove
 }
 
-func (a Attributes) Id() uint32 {
+func (a Properties) Id() uint32 {
 	return a.id
 }
 
-func (a Attributes) Name() string {
+func (a Properties) Name() string {
 	return a.name
 }
 
-func (a Attributes) Gender() byte {
+func (a Properties) Gender() byte {
 	return a.gender
 }
 
-func (a Attributes) SkinColor() byte {
+func (a Properties) SkinColor() byte {
 	return a.skinColor
 }
 
-func (a Attributes) Face() uint32 {
+func (a Properties) Face() uint32 {
 	return a.face
 }
 
-func (a Attributes) Hair() uint32 {
+func (a Properties) Hair() uint32 {
 	return a.hair
 }
 
-func (a Attributes) Level() byte {
+func (a Properties) Level() byte {
 	return a.level
 }
 
-func (a Attributes) JobId() uint16 {
+func (a Properties) JobId() uint16 {
 	return a.jobId
 }
 
-func (a Attributes) Strength() uint16 {
+func (a Properties) Strength() uint16 {
 	return a.strength
 }
 
-func (a Attributes) Dexterity() uint16 {
+func (a Properties) Dexterity() uint16 {
 	return a.dexterity
 }
 
-func (a Attributes) Intelligence() uint16 {
+func (a Properties) Intelligence() uint16 {
 	return a.intelligence
 }
 
-func (a Attributes) Luck() uint16 {
+func (a Properties) Luck() uint16 {
 	return a.luck
 }
 
-func (a Attributes) Hp() uint16 {
+func (a Properties) Hp() uint16 {
 	return a.hp
 }
 
-func (a Attributes) MaxHp() uint16 {
+func (a Properties) MaxHp() uint16 {
 	return a.maxHp
 }
 
-func (a Attributes) Mp() uint16 {
+func (a Properties) Mp() uint16 {
 	return a.mp
 }
 
-func (a Attributes) MaxMp() uint16 {
+func (a Properties) MaxMp() uint16 {
 	return a.maxMp
 }
 
-func (a Attributes) Ap() uint16 {
+func (a Properties) Ap() uint16 {
 	return a.ap
 }
 
-func (a Attributes) HasSPTable() bool {
+func (a Properties) HasSPTable() bool {
 	switch a.jobId {
 	case 2001:
 		return true
@@ -183,7 +183,7 @@ func (a Attributes) HasSPTable() bool {
 	}
 }
 
-func (a Attributes) Sp() []uint16 {
+func (a Properties) Sp() []uint16 {
 	s := strings.Split(a.sp, ",")
 	var sps = make([]uint16, 0)
 	for _, x := range s {
@@ -195,43 +195,43 @@ func (a Attributes) Sp() []uint16 {
 	return sps
 }
 
-func (a Attributes) RemainingSp() uint16 {
+func (a Properties) RemainingSp() uint16 {
 	return a.Sp()[a.skillBook()]
 
 }
 
-func (a Attributes) skillBook() uint16 {
+func (a Properties) skillBook() uint16 {
 	if a.jobId >= 2210 && a.jobId <= 2218 {
 		return a.jobId - 2209
 	}
 	return 0
 }
 
-func (a Attributes) Experience() uint32 {
+func (a Properties) Experience() uint32 {
 	return a.experience
 }
 
-func (a Attributes) Fame() int16 {
+func (a Properties) Fame() int16 {
 	return a.fame
 }
 
-func (a Attributes) GachaponExperience() uint32 {
+func (a Properties) GachaponExperience() uint32 {
 	return a.gachaponExperience
 }
 
-func (a Attributes) SpawnPoint() byte {
+func (a Properties) SpawnPoint() byte {
 	return a.spawnPoint
 }
 
-func (a Attributes) WorldId() byte {
+func (a Properties) WorldId() byte {
 	return a.worldId
 }
 
-func (a Attributes) MapId() uint32 {
+func (a Properties) MapId() uint32 {
 	return a.mapId
 }
 
-type characterAttributeBuilder struct {
+type propertiesBuilder struct {
 	id                 uint32
 	worldId            byte
 	name               string
@@ -264,162 +264,162 @@ type characterAttributeBuilder struct {
 	jobRankMove        int
 }
 
-func NewCharacterAttributeBuilder() *characterAttributeBuilder {
-	return &characterAttributeBuilder{}
+func NewCharacterPropertiesBuilder() *propertiesBuilder {
+	return &propertiesBuilder{}
 }
 
-func (c *characterAttributeBuilder) SetId(id uint32) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetId(id uint32) *propertiesBuilder {
 	c.id = id
 	return c
 }
 
-func (c *characterAttributeBuilder) SetWorldId(worldId byte) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetWorldId(worldId byte) *propertiesBuilder {
 	c.worldId = worldId
 	return c
 }
 
-func (c *characterAttributeBuilder) SetName(name string) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetName(name string) *propertiesBuilder {
 	c.name = name
 	return c
 }
 
-func (c *characterAttributeBuilder) SetGender(gender byte) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetGender(gender byte) *propertiesBuilder {
 	c.gender = gender
 	return c
 }
 
-func (c *characterAttributeBuilder) SetSkinColor(skinColor byte) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetSkinColor(skinColor byte) *propertiesBuilder {
 	c.skinColor = skinColor
 	return c
 }
 
-func (c *characterAttributeBuilder) SetFace(face uint32) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetFace(face uint32) *propertiesBuilder {
 	c.face = face
 	return c
 }
 
-func (c *characterAttributeBuilder) SetHair(hair uint32) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetHair(hair uint32) *propertiesBuilder {
 	c.hair = hair
 	return c
 }
 
-func (c *characterAttributeBuilder) SetLevel(level byte) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetLevel(level byte) *propertiesBuilder {
 	c.level = level
 	return c
 }
 
-func (c *characterAttributeBuilder) SetJobId(jobId uint16) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetJobId(jobId uint16) *propertiesBuilder {
 	c.jobId = jobId
 	return c
 }
 
-func (c *characterAttributeBuilder) SetStrength(strength uint16) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetStrength(strength uint16) *propertiesBuilder {
 	c.strength = strength
 	return c
 }
 
-func (c *characterAttributeBuilder) SetDexterity(dexterity uint16) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetDexterity(dexterity uint16) *propertiesBuilder {
 	c.dexterity = dexterity
 	return c
 }
 
-func (c *characterAttributeBuilder) SetIntelligence(intelligence uint16) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetIntelligence(intelligence uint16) *propertiesBuilder {
 	c.intelligence = intelligence
 	return c
 }
 
-func (c *characterAttributeBuilder) SetLuck(luck uint16) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetLuck(luck uint16) *propertiesBuilder {
 	c.luck = luck
 	return c
 }
 
-func (c *characterAttributeBuilder) SetHp(hp uint16) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetHp(hp uint16) *propertiesBuilder {
 	c.hp = hp
 	return c
 }
 
-func (c *characterAttributeBuilder) SetMaxHp(maxHp uint16) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetMaxHp(maxHp uint16) *propertiesBuilder {
 	c.maxHp = maxHp
 	return c
 }
 
-func (c *characterAttributeBuilder) SetMp(mp uint16) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetMp(mp uint16) *propertiesBuilder {
 	c.mp = mp
 	return c
 }
 
-func (c *characterAttributeBuilder) SetMaxMp(maxMp uint16) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetMaxMp(maxMp uint16) *propertiesBuilder {
 	c.maxMp = maxMp
 	return c
 }
 
-func (c *characterAttributeBuilder) SetAp(ap uint16) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetAp(ap uint16) *propertiesBuilder {
 	c.ap = ap
 	return c
 }
 
-func (c *characterAttributeBuilder) SetSp(sp string) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetSp(sp string) *propertiesBuilder {
 	c.sp = sp
 	return c
 }
 
-func (c *characterAttributeBuilder) SetExperience(experience uint32) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetExperience(experience uint32) *propertiesBuilder {
 	c.experience = experience
 	return c
 }
 
-func (c *characterAttributeBuilder) SetFame(fame int16) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetFame(fame int16) *propertiesBuilder {
 	c.fame = fame
 	return c
 }
 
-func (c *characterAttributeBuilder) SetGachaponExperience(gachaponExperience uint32) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetGachaponExperience(gachaponExperience uint32) *propertiesBuilder {
 	c.gachaponExperience = gachaponExperience
 	return c
 }
 
-func (c *characterAttributeBuilder) SetMapId(mapId uint32) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetMapId(mapId uint32) *propertiesBuilder {
 	c.mapId = mapId
 	return c
 }
 
-func (c *characterAttributeBuilder) SetSpawnPoint(spawnPoint byte) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetSpawnPoint(spawnPoint byte) *propertiesBuilder {
 	c.spawnPoint = spawnPoint
 	return c
 }
 
-func (c *characterAttributeBuilder) SetGm(gm bool) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetGm(gm bool) *propertiesBuilder {
 	c.gm = gm
 	return c
 }
 
-func (c *characterAttributeBuilder) SetGmJob(gmJob bool) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetGmJob(gmJob bool) *propertiesBuilder {
 	c.gmJob = gmJob
 	return c
 }
 
-func (c *characterAttributeBuilder) SetRank(rank int) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetRank(rank int) *propertiesBuilder {
 	c.rank = rank
 	return c
 }
 
-func (c *characterAttributeBuilder) SetRankMove(rankMove int) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetRankMove(rankMove int) *propertiesBuilder {
 	c.rankMove = rankMove
 	return c
 }
 
-func (c *characterAttributeBuilder) SetJobRank(jobRank int) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetJobRank(jobRank int) *propertiesBuilder {
 	c.jobRank = jobRank
 	return c
 }
 
-func (c *characterAttributeBuilder) SetJobRankMove(jobRankMove int) *characterAttributeBuilder {
+func (c *propertiesBuilder) SetJobRankMove(jobRankMove int) *propertiesBuilder {
 	c.jobRankMove = jobRankMove
 	return c
 }
 
-func (c *characterAttributeBuilder) Build() Attributes {
-	return Attributes{
+func (c *propertiesBuilder) Build() Properties {
+	return Properties{
 		id:                 c.id,
 		worldId:            c.worldId,
 		name:               c.name,

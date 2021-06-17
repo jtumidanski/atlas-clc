@@ -1,27 +1,27 @@
 package equipment
 
-type EquipmentData struct {
-	Id         string              `json:"id"`
-	Type       string              `json:"type"`
-	Attributes EquipmentAttributes `json:"attributes"`
+type DataBody struct {
+	Id         string     `json:"id"`
+	Type       string     `json:"type"`
+	Attributes Attributes `json:"attributes"`
 }
 
-type EquipmentAttributes struct {
+type Attributes struct {
 	EquipmentId int   `json:"equipmentId"`
 	Slot        int16 `json:"slot"`
 }
 
 func EmptyEquipmentData() interface{} {
-	return &EquipmentData{}
+	return &DataBody{}
 }
 
-type EquipmentStatisticsData struct {
-	Id         string                        `json:"id"`
-	Type       string                        `json:"type"`
-	Attributes EquipmentStatisticsAttributes `json:"attributes"`
+type StatisticsDataBody struct {
+	Id         string               `json:"id"`
+	Type       string               `json:"type"`
+	Attributes StatisticsAttributes `json:"attributes"`
 }
 
-type EquipmentStatisticsAttributes struct {
+type StatisticsAttributes struct {
 	ItemId        uint32 `json:"itemId"`
 	Strength      uint16 `json:"strength"`
 	Dexterity     uint16 `json:"dexterity"`
@@ -42,5 +42,5 @@ type EquipmentStatisticsAttributes struct {
 }
 
 func EmptyEquipmentStatisticsData() interface{} {
-	return &EquipmentStatisticsData{}
+	return &StatisticsDataBody{}
 }

@@ -12,8 +12,8 @@ const (
 	BlockedNamesByName               = BlockedNameResource + "?name=%s"
 )
 
-func GetBlockedNamesByName(name string) (*BlockedNameDataContainer, error) {
-	ar := &BlockedNameDataContainer{}
+func requestByName(name string) (*dataContainer, error) {
+	ar := &dataContainer{}
 	err := requests.Get(fmt.Sprintf(BlockedNamesByName, name), ar)
 	if err != nil {
 		return nil, err

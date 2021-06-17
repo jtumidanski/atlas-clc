@@ -46,7 +46,7 @@ func (h *CharacterListAllHandler) announceAllCharacters(cm map[byte][]character.
 func (h *CharacterListAllHandler) getWorldCharacters(accountId uint32, ws []world.Model) map[byte][]character.Model {
 	var cwm = make(map[byte][]character.Model, 0)
 	for _, x := range ws {
-		cs, err := character.GetCharactersForWorld(accountId, x.Id())
+		cs, err := character.GetForWorld(accountId, x.Id())
 		if err == nil {
 			cwm[x.Id()] = cs
 		}

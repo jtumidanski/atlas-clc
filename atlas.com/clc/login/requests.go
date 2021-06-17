@@ -11,11 +11,11 @@ const (
 )
 
 func CreateLogin(sessionId int, name string, password string, ipAddress string) (r *http.Response, err error) {
-	i := LoginInputDataContainer{
-		Data: LoginData{
+	i := inputDataContainer{
+		Data: dataBody{
 			Id:   "0",
 			Type: "com.atlas.aos.attribute.LoginAttributes",
-			Attributes: LoginAttributes{
+			Attributes: attributes{
 				SessionId: sessionId,
 				Name:      name,
 				Password:  password,

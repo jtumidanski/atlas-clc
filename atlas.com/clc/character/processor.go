@@ -9,8 +9,8 @@ import (
 	"strconv"
 )
 
-func GetCharacterAttributesByName(name string) (*Attributes, error) {
-	ca, err := requestCharacterAttributesByName(name)
+func GetPropertiesByName(name string) (*Properties, error) {
+	ca, err := requestPropertiesByName(name)
 	if err != nil {
 		return nil, err
 	}
@@ -18,16 +18,16 @@ func GetCharacterAttributesByName(name string) (*Attributes, error) {
 		return nil, errors.New("unable to find character by name")
 	}
 
-	return makeCharacterAttributes(ca.Data()), nil
+	return makeProperties(ca.Data()), nil
 }
 
-func makeCharacterAttributes(ca *CharacterAttributesData) *Attributes {
+func makeProperties(ca *propertiesDataBody) *Properties {
 	cid, err := strconv.ParseUint(ca.Id, 10, 32)
 	if err != nil {
 		return nil
 	}
 	att := ca.Attributes
-	r := NewCharacterAttributeBuilder().
+	r := NewCharacterPropertiesBuilder().
 		SetId(uint32(cid)).
 		SetWorldId(att.WorldId).
 		SetName(att.Name).
@@ -65,7 +65,7 @@ func IsValidName(name string) (bool, error) {
 		return false, nil
 	}
 
-	_, err = GetCharacterAttributesByName(name)
+	_, err = GetPropertiesByName(name)
 	if err == nil {
 		return false, nil
 	}
@@ -82,15 +82,15 @@ func IsValidName(name string) (bool, error) {
 	return true, nil
 }
 
-func GetCharactersForWorld(accountId uint32, worldId byte) ([]Model, error) {
-	cs, err := requestCharacterAttributesForAccountByWorld(accountId, worldId)
+func GetForWorld(accountId uint32, worldId byte) ([]Model, error) {
+	cs, err := requestPropertiesByAccountAndWorld(accountId, worldId)
 	if err != nil {
 		return nil, err
 	}
 
 	var characters = make([]Model, 0)
 	for _, x := range cs.DataList() {
-		c, err := getCharacterForAttributes(&x)
+		c, err := getFromProperties(&x)
 		if err != nil {
 			return nil, err
 		}
@@ -99,23 +99,23 @@ func GetCharactersForWorld(accountId uint32, worldId byte) ([]Model, error) {
 	return characters, nil
 }
 
-func GetCharacterById(characterId uint32) (*Model, error) {
-	cs, err := requestCharacterAttributesById(characterId)
+func GetById(characterId uint32) (*Model, error) {
+	cs, err := requestPropertiesById(characterId)
 	if err != nil {
 		return nil, err
 	}
 
-	c, err := getCharacterForAttributes(cs.Data())
+	c, err := getFromProperties(cs.Data())
 	if err != nil {
 		return nil, err
 	}
 	return c, nil
 }
 
-func getCharacterForAttributes(data *CharacterAttributesData) (*Model, error) {
-	ca := makeCharacterAttributes(data)
+func getFromProperties(data *propertiesDataBody) (*Model, error) {
+	ca := makeProperties(data)
 	if ca == nil {
-		return nil, errors.New("unable to make character attributes")
+		return nil, errors.New("unable to make character properties")
 	}
 
 	eq, err := inventory.GetEquippedItemsForCharacter(ca.Id())
@@ -132,10 +132,10 @@ func getCharacterForAttributes(data *CharacterAttributesData) (*Model, error) {
 	return &c, nil
 }
 
-func SeedCharacter(accountId uint32, worldId byte, name string, job uint32, face uint32, hair uint32, color uint32, skinColor uint32, gender byte, top uint32, bottom uint32, shoes uint32, weapon uint32) (*Attributes, error) {
+func SeedCharacter(accountId uint32, worldId byte, name string, job uint32, face uint32, hair uint32, color uint32, skinColor uint32, gender byte, top uint32, bottom uint32, shoes uint32, weapon uint32) (*Properties, error) {
 	ca, err := seedCharacter(accountId, worldId, name, job, face, hair, color, skinColor, gender, top, bottom, shoes, weapon)
 	if err != nil {
 		return nil, err
 	}
-	return makeCharacterAttributes(ca), nil
+	return makeProperties(ca), nil
 }

@@ -61,13 +61,13 @@ func (h *CharacterListWorldHandler) HandleRequest(l logrus.FieldLogger, ms *sess
 	(*ms).SetWorldId(p.WorldId())
 	(*ms).SetChannelId(p.ChannelId())
 
-	a, err := account.GetAccountById((*ms).AccountId())
+	a, err := account.GetById((*ms).AccountId())
 	if err != nil {
 		l.WithError(err).Errorf("Cannot retrieve account")
 		return
 	}
 
-	cs, err := character.GetCharactersForWorld((*ms).AccountId(), p.WorldId())
+	cs, err := character.GetForWorld((*ms).AccountId(), p.WorldId())
 	if err != nil {
 		l.WithError(err).Errorf("Cannot retrieve account characters")
 		return

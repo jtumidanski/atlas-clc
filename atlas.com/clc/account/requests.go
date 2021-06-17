@@ -13,8 +13,8 @@ const (
 	AccountsById                 = AccountsResource + "%d"
 )
 
-func requestAccountByName(name string) (*AccountDataContainer, error) {
-	ar := &AccountDataContainer{}
+func requestAccountByName(name string) (*dataContainer, error) {
+	ar := &dataContainer{}
 	err := requests.Get(fmt.Sprintf(AccountsByName, name), ar)
 	if err != nil {
 		return nil, err
@@ -22,8 +22,8 @@ func requestAccountByName(name string) (*AccountDataContainer, error) {
 	return ar, nil
 }
 
-func requestAccountById(id uint32) (*AccountDataContainer, error) {
-	ar := &AccountDataContainer{}
+func requestAccountById(id uint32) (*dataContainer, error) {
+	ar := &dataContainer{}
 	err := requests.Get(fmt.Sprintf(AccountsById, id), ar)
 	if err != nil {
 		return nil, err

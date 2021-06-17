@@ -4,7 +4,7 @@ import (
 	"errors"
 )
 
-func GetChannels() ([]Model, error) {
+func GetAll() ([]Model, error) {
 	r, err := requestChannels()
 	if err != nil {
 		return nil, err
@@ -14,7 +14,7 @@ func GetChannels() ([]Model, error) {
 	return cs, nil
 }
 
-func GetChannelsForWorld(worldId byte) ([]Model, error) {
+func GetAllForWorld(worldId byte) ([]Model, error) {
 	r, err := requestChannelsForWorld(worldId)
 	if err != nil {
 		return nil, err
@@ -24,7 +24,7 @@ func GetChannelsForWorld(worldId byte) ([]Model, error) {
 	return cs, nil
 }
 
-func GetChannelForWorld(worldId byte, channelId byte) (*Model, error) {
+func GetForWorldById(worldId byte, channelId byte) (*Model, error) {
 	r, err := requestChannelsForWorld(worldId)
 	if err != nil {
 		return nil, err
@@ -40,7 +40,7 @@ func GetChannelForWorld(worldId byte, channelId byte) (*Model, error) {
 }
 
 func GetChannelLoadByWorld() (map[int][]Load, error) {
-	cs, err := GetChannels()
+	cs, err := GetAll()
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func GetChannelLoadByWorld() (map[int][]Load, error) {
 	return cls, nil
 }
 
-func makeChannelList(d []ChannelServerData) []Model {
+func makeChannelList(d []dataBody) []Model {
 	var cs = make([]Model, 0)
 	for _, x := range d {
 		c := makeChannel(x)
@@ -66,7 +66,7 @@ func makeChannelList(d []ChannelServerData) []Model {
 	return cs
 }
 
-func makeChannel(data ChannelServerData) Model {
+func makeChannel(data dataBody) Model {
 	att := data.Attributes
 	return NewChannelBuilder().
 		SetWorldId(att.WorldId).
