@@ -8,16 +8,22 @@ import (
 	"atlas-clc/socket/request"
 	"atlas-clc/socket/request/handler"
 	"atlas-clc/tasks"
+	"context"
 	"github.com/jtumidanski/atlas-socket"
 	"github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 )
 
 func main() {
 	l := logger.CreateLogger()
+	l.Infoln("Starting main service.")
+
+	wg := &sync.WaitGroup{}
+	ctx, cancel := context.WithCancel(context.Background())
 
 	config, err := registries.GetConfiguration()
 	if err != nil {
@@ -34,8 +40,7 @@ func main() {
 	registerHandlers(ss, l)
 	go ss.Run()
 
-	rs := rest.NewServer(l)
-	go rs.Run()
+	rest.CreateRestService(l, ctx, wg)
 
 	go tasks.Register(tasks.NewTimeout(l, lss, time.Second*time.Duration(config.TimeoutTaskInterval)))
 
@@ -46,11 +51,15 @@ func main() {
 	// Block until a signal is received.
 	sig := <-c
 	l.Infoln("Shutting down via signal:", sig)
+	cancel()
+	wg.Wait()
 
 	sessions := registries.GetSessionRegistry().GetAll()
 	for _, s := range sessions {
 		lss.Destroy(s.SessionId())
 	}
+
+	l.Infoln("Service shutdown.")
 }
 
 func registerHandlers(ss *socket.Server, l logrus.FieldLogger) {
