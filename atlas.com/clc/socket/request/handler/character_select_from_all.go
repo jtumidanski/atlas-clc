@@ -80,5 +80,8 @@ func (h *CharacterSelectFromAllHandler) HandleRequest(l logrus.FieldLogger, ms *
 	ch := cs[rand.Intn(len(cs))]
 	(*ms).SetChannelId(ch.ChannelId())
 
-	(*ms).Announce(writer.WriteServerIp(ch.IpAddress(), ch.Port(), c.Properties().Id()))
+	err = (*ms).Announce(writer.WriteServerIp(ch.IpAddress(), ch.Port(), c.Properties().Id()))
+	if err != nil {
+		l.WithError(err).Errorf("Unable to send channel server connection information")
+	}
 }

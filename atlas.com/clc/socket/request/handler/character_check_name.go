@@ -38,10 +38,16 @@ func (h *CharacterCheckNameHandler) IsValid(l logrus.FieldLogger, ms *session.Ma
 func (h *CharacterCheckNameHandler) HandleRequest(l logrus.FieldLogger, ms *session.MapleSession, r *request.RequestReader) {
 	p := ReadCharacterCheckNameRequest(r)
 
-	v, err := character.IsValidName(p.Name())
+	ok, err := character.IsValidName(p.Name())
 	if err != nil {
 		l.WithError(err).Errorf("Validating character name on creation")
-		(*ms).Announce(writer.WriteCharacterNameCheck(p.Name(), true))
+		err = (*ms).Announce(writer.WriteCharacterNameCheck(p.Name(), true))
+		if err != nil {
+			l.WithError(err).Errorf("Unable to issue character name validation error")
+		}
 	}
-	(*ms).Announce(writer.WriteCharacterNameCheck(p.Name(), !v))
+	err = (*ms).Announce(writer.WriteCharacterNameCheck(p.Name(), !ok))
+	if err != nil {
+		l.WithError(err).Errorf("Unable to inform character name validation success")
+	}
 }

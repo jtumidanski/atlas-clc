@@ -16,13 +16,13 @@ import (
 const OpCodeLogin uint16 = 0x01
 
 type LoginRequest struct {
-	login    string
+	name     string
 	password string
 	hwid     []byte
 }
 
-func (l *LoginRequest) Login() string {
-	return l.login
+func (l *LoginRequest) Name() string {
+	return l.name
 }
 
 func (l *LoginRequest) Password() string {
@@ -30,12 +30,12 @@ func (l *LoginRequest) Password() string {
 }
 
 func ReadLoginRequest(reader *request.RequestReader) *LoginRequest {
-	login := reader.ReadAsciiString()
+	name := reader.ReadAsciiString()
 	password := reader.ReadAsciiString()
 	reader.Skip(6)
 	hwid := reader.ReadBytes(4)
 	return &LoginRequest{
-		login:    login,
+		name:     name,
 		password: password,
 		hwid:     hwid,
 	}
@@ -48,13 +48,13 @@ func (h *LoginHandler) IsValid(_ logrus.FieldLogger, _ *session.MapleSession) bo
 	return true
 }
 
-func (h *LoginHandler) HandleRequest(_ logrus.FieldLogger, ms *session.MapleSession, r *request.RequestReader) {
+func (h *LoginHandler) HandleRequest(l logrus.FieldLogger, ms *session.MapleSession, r *request.RequestReader) {
 	p := ReadLoginRequest(r)
 
 	ip := (*ms).GetRemoteAddress().String()
-	resp, err := login.CreateLogin((*ms).SessionId(), p.Login(), p.Password(), ip)
+	resp, err := login.CreateLogin((*ms).SessionId(), p.Name(), p.Password(), ip)
 	if err != nil {
-		h.announceSystemError(ms)
+		h.announceSystemError(l, ms)
 		return
 	}
 
@@ -62,60 +62,84 @@ func (h *LoginHandler) HandleRequest(_ logrus.FieldLogger, ms *session.MapleSess
 		eb := &resources.ErrorListDataContainer{}
 		err = requests.ProcessErrorResponse(resp, eb)
 		if err != nil {
-			h.announceSystemError(ms)
+			h.announceSystemError(l, ms)
 			return
 		}
 
 		if len(eb.Errors) > 0 {
-			h.processFirstError(ms, eb.Errors[0])
+			h.processFirstError(l, ms, eb.Errors[0])
 			return
 		}
 
-		h.announceSystemError(ms)
+		h.announceSystemError(l, ms)
 		return
 	}
 
-	h.authorizeSuccess(ms, p.Login())
+	h.authorizeSuccess(l, ms, p.Name())
 }
 
-func (h *LoginHandler) authorizeSuccess(ms *session.MapleSession, name string) {
+func (h *LoginHandler) authorizeSuccess(l logrus.FieldLogger, ms *session.MapleSession, name string) {
 	a, err := account.GetByName(name)
 	if err == nil {
 		(*ms).SetAccountId(a.Id())
-		(*ms).Announce(writer.WriteAuthSuccess(a.Id(), a.Name(), a.Gender(), a.PIC()))
+		err = (*ms).Announce(writer.WriteAuthSuccess(a.Id(), a.Name(), a.Gender(), a.PIC()))
+		if err != nil {
+			l.WithError(err).Errorf("Unable to show successful authorization for account %d", a.Id())
+		}
 	}
 }
 
-func (h *LoginHandler) announceSystemError(ms *session.MapleSession) {
-	(*ms).Announce(writer.WriteLoginFailed(SystemError))
+func (h *LoginHandler) announceSystemError(l logrus.FieldLogger, ms *session.MapleSession) {
+	err := (*ms).Announce(writer.WriteLoginFailed(SystemError))
+	if err != nil {
+		l.WithError(err).Errorf("Unable to identify that login has failed")
+	}
 }
 
-func (h LoginHandler) processFirstError(ms *session.MapleSession, data resources.ErrorData) {
+func (h LoginHandler) processFirstError(l logrus.FieldLogger, ms *session.MapleSession, data resources.ErrorData) {
 	r := GetLoginFailedReason(data.Code)
 	if r == DeletedOrBlocked {
 		if data.Detail == "" {
-			(*ms).Announce(writer.WriteLoginFailed(DeletedOrBlocked))
+			err := (*ms).Announce(writer.WriteLoginFailed(DeletedOrBlocked))
+			if err != nil {
+				l.WithError(err).Errorf("Unable to issue login failed due to account being deleted or blocked")
+			}
 			return
 		}
 
 		reason := data.Meta["reason"]
 		rc, err := strconv.ParseUint(reason, 10, 8)
 		if err != nil {
-			(*ms).Announce(writer.WriteLoginFailed(SystemError))
+			err = (*ms).Announce(writer.WriteLoginFailed(SystemError))
+			if err != nil {
+				l.WithError(err).Errorf("Unable to issue login failed due to system error")
+			}
 			return
 		}
 
 		if tb, ok := data.Meta["tempBan"]; ok {
 			until, err := strconv.ParseUint(tb, 10, 64)
 			if err != nil {
-				(*ms).Announce(writer.WriteLoginFailed(SystemError))
+				err = (*ms).Announce(writer.WriteLoginFailed(SystemError))
+				if err != nil {
+					l.WithError(err).Errorf("Unable to issue login failed due to system error")
+				}
 				return
 			}
-			(*ms).Announce(writer.WriteTemporaryBan(until, byte(rc)))
+			err = (*ms).Announce(writer.WriteTemporaryBan(until, byte(rc)))
+			if err != nil {
+				l.WithError(err).Errorf("Unable to issue login failed due to temporary ban")
+			}
 			return
 		}
-		(*ms).Announce(writer.WritePermanentBan())
+		err = (*ms).Announce(writer.WritePermanentBan())
+		if err != nil {
+			l.WithError(err).Errorf("Unable to issue login failed due to permanent ban")
+		}
 		return
 	}
-	(*ms).Announce(writer.WriteLoginFailed(r))
+	err := (*ms).Announce(writer.WriteLoginFailed(r))
+	if err != nil {
+		l.WithError(err).Errorf("Unable to issue login failed due to reason %d", r)
+	}
 }

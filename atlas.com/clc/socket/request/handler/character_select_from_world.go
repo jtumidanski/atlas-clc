@@ -68,5 +68,8 @@ func (h *CharacterSelectFromWorldHandler) HandleRequest(l logrus.FieldLogger, ms
 		return
 	}
 
-	(*ms).Announce(writer.WriteServerIp(ch.IpAddress(), ch.Port(), c.Properties().Id()))
+	err = (*ms).Announce(writer.WriteServerIp(ch.IpAddress(), ch.Port(), c.Properties().Id()))
+	if err != nil {
+		l.WithError(err).Errorf("Unable to send channel server connection information")
+	}
 }

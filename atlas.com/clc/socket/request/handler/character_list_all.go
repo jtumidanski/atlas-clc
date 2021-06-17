@@ -30,16 +30,22 @@ func (h *CharacterListAllHandler) HandleRequest(l logrus.FieldLogger, ms *sessio
 	}
 
 	cm := h.getWorldCharacters((*ms).AccountId(), ws)
-	h.announceAllCharacters(cm, ms)
+	h.announceAllCharacters(l, cm, ms)
 }
 
-func (h *CharacterListAllHandler) announceAllCharacters(cm map[byte][]character.Model, ms *session.MapleSession) {
+func (h *CharacterListAllHandler) announceAllCharacters(l logrus.FieldLogger, cm map[byte][]character.Model, ms *session.MapleSession) {
 	cs := uint32(len(cm))
 	unk := cs + (3 - cs%3) // row size
 
-	(*ms).Announce(writer.WriteShowAllCharacter(cs, unk))
+	err := (*ms).Announce(writer.WriteShowAllCharacter(cs, unk))
+	if err != nil {
+		l.WithError(err).Errorf("Unable to show all characters")
+	}
 	for k, v := range cm {
-		(*ms).Announce(writer.WriteShowAllCharacterInfo(k, v, false))
+		err = (*ms).Announce(writer.WriteShowAllCharacterInfo(k, v, false))
+		if err != nil {
+			l.WithError(err).Errorf("Unable to show character information")
+		}
 	}
 }
 

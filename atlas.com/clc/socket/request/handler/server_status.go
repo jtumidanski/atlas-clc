@@ -35,9 +35,12 @@ func (h *ServerStatusHandler) IsValid(l logrus.FieldLogger, ms *session.MapleSes
 	return v
 }
 
-func (h *ServerStatusHandler) HandleRequest(_ logrus.FieldLogger, ms *session.MapleSession, r *request.RequestReader) {
+func (h *ServerStatusHandler) HandleRequest(l logrus.FieldLogger, ms *session.MapleSession, r *request.RequestReader) {
 	p := ReadServerStatusRequest(r)
 
 	cs := world.GetWorldCapacityStatus(p.WorldId())
-	(*ms).Announce(writer.WriteWorldCapacityStatus(cs))
+	err := (*ms).Announce(writer.WriteWorldCapacityStatus(cs))
+	if err != nil {
+		l.WithError(err).Errorf("Unable to issue world capacity status information")
+	}
 }

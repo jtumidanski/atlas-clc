@@ -73,7 +73,7 @@ func (s *mapleSession) announce(b []byte) error {
 }
 
 func (s *mapleSession) WriteHello() {
-   s.announce(writer.WriteHello(version, s.send.IV(), s.recv.IV()))
+   _ = s.announce(writer.WriteHello(version, s.send.IV(), s.recv.IV()))
 }
 
 func (s *mapleSession) ReceiveAESOFB() *crypto.AESOFB {
