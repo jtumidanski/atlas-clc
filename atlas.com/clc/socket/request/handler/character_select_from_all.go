@@ -1,10 +1,12 @@
 package handler
 
 import (
-	models2 "atlas-clc/domain"
-	"atlas-clc/mapleSession"
-	"atlas-clc/processors"
+	"atlas-clc/account"
+	"atlas-clc/channel"
+	"atlas-clc/character"
+	"atlas-clc/session"
 	"atlas-clc/socket/response/writer"
+	"atlas-clc/world"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/sirupsen/logrus"
 	"math/rand"
@@ -39,18 +41,18 @@ func ReadCharacterSelectFromAll(reader *request.RequestReader) *CharacterSelectF
 type CharacterSelectFromAllHandler struct {
 }
 
-func (h *CharacterSelectFromAllHandler) IsValid(l logrus.FieldLogger, ms *mapleSession.MapleSession) bool {
-	v := processors.IsLoggedIn((*ms).AccountId())
+func (h *CharacterSelectFromAllHandler) IsValid(l logrus.FieldLogger, ms *session.MapleSession) bool {
+	v := account.IsLoggedIn((*ms).AccountId())
 	if !v {
 		l.Errorf("Attempting to process a [CharacterSelectFromAllRequest] when the account %d is not logged in.", (*ms).SessionId())
 	}
 	return v
 }
 
-func (h *CharacterSelectFromAllHandler) HandleRequest(l logrus.FieldLogger, ms *mapleSession.MapleSession, r *request.RequestReader) {
+func (h *CharacterSelectFromAllHandler) HandleRequest(l logrus.FieldLogger, ms *session.MapleSession, r *request.RequestReader) {
 	p := ReadCharacterSelectFromAll(r)
 
-	c, err := processors.GetCharacterById(uint32(p.CharacterId()))
+	c, err := character.GetCharacterById(uint32(p.CharacterId()))
 	if err != nil {
 		l.WithError(err).Errorf("Unable to retrieve selected character by id")
 		return
@@ -61,18 +63,18 @@ func (h *CharacterSelectFromAllHandler) HandleRequest(l logrus.FieldLogger, ms *
 	}
 	(*ms).SetWorldId(c.Attributes().WorldId())
 
-	w, err := processors.GetWorld((*ms).WorldId())
+	w, err := world.GetWorld((*ms).WorldId())
 	if err != nil {
 		l.WithError(err).Errorf("Unable to retrieve world logged into by session")
 		return
 	}
-	if w.CapacityStatus() == models2.Full {
+	if w.CapacityStatus() == world.StatusFull {
 		l.Infof("World being logged into is full")
 		//TODO disconnect
 		return
 	}
 
-	cs, err := processors.GetChannelsForWorld((*ms).WorldId())
+	cs, err := channel.GetChannelsForWorld((*ms).WorldId())
 	// initialize global pseudo random generator
 	rand.Seed(time.Now().Unix())
 	ch := cs[rand.Intn(len(cs))]

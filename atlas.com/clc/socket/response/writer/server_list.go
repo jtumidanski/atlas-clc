@@ -1,14 +1,14 @@
 package writer
 
 import (
-	"atlas-clc/domain"
+	"atlas-clc/channel"
 	"atlas-clc/socket/response"
 	"fmt"
 )
 
 const OpCodeServerList uint16 = 0x0A
 
-func WriteServerListEntry(worldId byte, worldName string, flag int, eventMessage string, channelLoad []domain.ChannelLoad) []byte {
+func WriteServerListEntry(worldId byte, worldName string, flag int, eventMessage string, channelLoad []channel.Load) []byte {
 	w := response.NewWriter()
 	w.WriteShort(OpCodeServerList)
 	w.WriteByte(worldId)

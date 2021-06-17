@@ -1,7 +1,7 @@
 package requests
 
 import (
-	"atlas-clc/rest/attributes"
+	json2 "atlas-clc/json"
 	"bytes"
 	"encoding/json"
 	"net/http"
@@ -35,7 +35,7 @@ func Post(url string, input interface{}) (*http.Response, error) {
 }
 
 func ProcessResponse(r *http.Response, rb interface{}) error {
-	err := attributes.FromJSON(rb, r.Body)
+	err := json2.FromJSON(rb, r.Body)
 	if err != nil {
 		return err
 	}
@@ -45,7 +45,7 @@ func ProcessResponse(r *http.Response, rb interface{}) error {
 
 func ProcessErrorResponse(r *http.Response, eb interface{}) error {
 	if r.ContentLength > 0 {
-		err := attributes.FromJSON(eb, r.Body)
+		err := json2.FromJSON(eb, r.Body)
 		if err != nil {
 			return err
 		}

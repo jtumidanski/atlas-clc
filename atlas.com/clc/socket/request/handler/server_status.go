@@ -1,9 +1,10 @@
 package handler
 
 import (
-	"atlas-clc/mapleSession"
-	"atlas-clc/processors"
+	"atlas-clc/account"
+	"atlas-clc/session"
 	"atlas-clc/socket/response/writer"
+	"atlas-clc/world"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/sirupsen/logrus"
 )
@@ -26,17 +27,17 @@ func ReadServerStatusRequest(reader *request.RequestReader) *ServerStatusRequest
 type ServerStatusHandler struct {
 }
 
-func (h *ServerStatusHandler) IsValid(l logrus.FieldLogger, ms *mapleSession.MapleSession) bool {
-	v := processors.IsLoggedIn((*ms).AccountId())
+func (h *ServerStatusHandler) IsValid(l logrus.FieldLogger, ms *session.MapleSession) bool {
+	v := account.IsLoggedIn((*ms).AccountId())
 	if !v {
 		l.Errorf("Attempting to process a [ServerStatusRequest] when the account %d is not logged in.", (*ms).SessionId())
 	}
 	return v
 }
 
-func (h *ServerStatusHandler) HandleRequest(_ logrus.FieldLogger, ms *mapleSession.MapleSession, r *request.RequestReader) {
+func (h *ServerStatusHandler) HandleRequest(_ logrus.FieldLogger, ms *session.MapleSession, r *request.RequestReader) {
 	p := ReadServerStatusRequest(r)
 
-	cs := processors.GetWorldCapacityStatus(p.WorldId())
+	cs := world.GetWorldCapacityStatus(p.WorldId())
 	(*ms).Announce(writer.WriteWorldCapacityStatus(cs))
 }

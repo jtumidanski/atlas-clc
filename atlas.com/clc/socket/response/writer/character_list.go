@@ -1,13 +1,15 @@
 package writer
 
 import (
-	"atlas-clc/domain"
+	"atlas-clc/character"
+	"atlas-clc/inventory"
+	"atlas-clc/pet"
 	"atlas-clc/socket/response"
 )
 
 const OpCodeCharacterList uint16 = 0x0B
 
-func WriteCharacterList(characters []domain.Character, worldId byte, status int, cannotBypassPic bool, pic string, availableCharacterSlots int16, characterSlots int16) []byte {
+func WriteCharacterList(characters []character.Model, worldId byte, status int, cannotBypassPic bool, pic string, availableCharacterSlots int16, characterSlots int16) []byte {
 	w := response.NewWriter()
 	w.WriteShort(OpCodeCharacterList)
 	w.WriteByte(byte(status))
@@ -20,7 +22,7 @@ func WriteCharacterList(characters []domain.Character, worldId byte, status int,
 	return w.Bytes()
 }
 
-func WriteCharacter(w *response.Writer, character domain.Character, viewAll bool) {
+func WriteCharacter(w *response.Writer, character character.Model, viewAll bool) {
 	WriteCharacterStatistics(w, character)
 	WriteCharacterLook(w, character, false)
 	if !viewAll {
@@ -37,7 +39,7 @@ func WriteCharacter(w *response.Writer, character domain.Character, viewAll bool
 	w.WriteInt(uint32(character.Attributes().JobRankMove()))
 }
 
-func WriteCharacterLook(w *response.Writer, character domain.Character, mega bool) {
+func WriteCharacterLook(w *response.Writer, character character.Model, mega bool) {
 	w.WriteByte(character.Attributes().Gender())
 	w.WriteByte(character.Attributes().SkinColor())
 	w.WriteInt(character.Attributes().Face())
@@ -46,13 +48,13 @@ func WriteCharacterLook(w *response.Writer, character domain.Character, mega boo
 	WriteCharacterEquipment(w, character)
 }
 
-func WriteCharacterEquipment(w *response.Writer, character domain.Character) {
+func WriteCharacterEquipment(w *response.Writer, character character.Model) {
 
 	var equips = getEquippedItemSlotMap(character.Equipment())
 	var maskedEquips = make(map[int16]uint32)
 	writeEquips(w, equips, maskedEquips)
 
-	var weapon *domain.EquippedItem
+	var weapon *inventory.EquippedItem
 	for _, x := range character.Equipment() {
 		if x.InWeaponSlot() {
 			weapon = &x
@@ -79,7 +81,7 @@ func writeEquips(w *response.Writer, equips map[int16]uint32, maskedEquips map[i
 	w.WriteByte(0xFF)
 }
 
-func getEquippedItemSlotMap(e []domain.EquippedItem) map[int16]uint32 {
+func getEquippedItemSlotMap(e []inventory.EquippedItem) map[int16]uint32 {
 	var equips = make(map[int16]uint32, 0)
 	for _, x := range e {
 		if x.NotInWeaponSlot() {
@@ -90,7 +92,7 @@ func getEquippedItemSlotMap(e []domain.EquippedItem) map[int16]uint32 {
 	return equips
 }
 
-func writePetItemId(w *response.Writer, p domain.Pet) {
+func writePetItemId(w *response.Writer, p pet.Model) {
 	w.WriteInt(p.ItemId())
 }
 
@@ -98,7 +100,7 @@ func writeEmptyPetItemId(w *response.Writer) {
 	w.WriteInt(0)
 }
 
-func writeForEachPet(w *response.Writer, ps []domain.Pet, pe func(w *response.Writer, p domain.Pet), pne func(w *response.Writer)) {
+func writeForEachPet(w *response.Writer, ps []pet.Model, pe func(w *response.Writer, p pet.Model), pne func(w *response.Writer)) {
 	for i := 0; i < 3; i++ {
 		if ps != nil && len(ps) > i {
 			pe(w, ps[i])
@@ -108,7 +110,7 @@ func writeForEachPet(w *response.Writer, ps []domain.Pet, pe func(w *response.Wr
 	}
 }
 
-func writePetId(w *response.Writer, pet domain.Pet) {
+func writePetId(w *response.Writer, pet pet.Model) {
 	w.WriteLong(pet.Id())
 }
 
@@ -116,7 +118,7 @@ func writeEmptyPetId(w *response.Writer) {
 	w.WriteLong(0)
 }
 
-func WriteCharacterStatistics(w *response.Writer, character domain.Character) {
+func WriteCharacterStatistics(w *response.Writer, character character.Model) {
 	w.WriteInt(character.Attributes().Id())
 
 	name := character.Attributes().Name()
@@ -160,6 +162,6 @@ func WriteCharacterStatistics(w *response.Writer, character domain.Character) {
 	w.WriteInt(0)
 }
 
-func WriteRemainingSkillInfo(w *response.Writer, character domain.Character) {
+func WriteRemainingSkillInfo(w *response.Writer, character character.Model) {
 
 }

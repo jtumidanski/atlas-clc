@@ -1,7 +1,7 @@
 package rest
 
 import (
-	"atlas-clc/rest/resources"
+	"atlas-clc/session"
 	"context"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -16,7 +16,7 @@ func CreateRestService(l *logrus.Logger, ctx context.Context, wg *sync.WaitGroup
 func ProduceRoutes(l logrus.FieldLogger) http.Handler {
 	router := mux.NewRouter().PathPrefix("/ms/clc").Subrouter().StrictSlash(true)
 	router.Use(CommonHeader)
-	s := resources.NewSessionResource(l)
+	s := session.NewSessionResource(l)
 	sRouter := router.PathPrefix("/sessions").Subrouter()
 	sRouter.HandleFunc("", s.GetSessions)
 	sRouter.HandleFunc("/{sessionId}/errors/{errorId}", s.LoginError)

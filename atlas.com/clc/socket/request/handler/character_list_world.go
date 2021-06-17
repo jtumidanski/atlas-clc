@@ -1,10 +1,11 @@
 package handler
 
 import (
-	status "atlas-clc/domain"
-	"atlas-clc/mapleSession"
-	"atlas-clc/processors"
+	"atlas-clc/account"
+	"atlas-clc/character"
+	"atlas-clc/session"
 	"atlas-clc/socket/response/writer"
+	"atlas-clc/world"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/sirupsen/logrus"
 )
@@ -35,38 +36,38 @@ func ReadCharacterListWorldRequest(reader *request.RequestReader) *CharacterList
 type CharacterListWorldHandler struct {
 }
 
-func (h *CharacterListWorldHandler) IsValid(l logrus.FieldLogger, ms *mapleSession.MapleSession) bool {
-	v := processors.IsLoggedIn((*ms).AccountId())
+func (h *CharacterListWorldHandler) IsValid(l logrus.FieldLogger, ms *session.MapleSession) bool {
+	v := account.IsLoggedIn((*ms).AccountId())
 	if !v {
 		l.Errorf("Attempting to process a [CharacterListWorldRequest] when the account %d is not logged in.", (*ms).SessionId())
 	}
 	return v
 }
 
-func (h *CharacterListWorldHandler) HandleRequest(l logrus.FieldLogger, ms *mapleSession.MapleSession, r *request.RequestReader) {
+func (h *CharacterListWorldHandler) HandleRequest(l logrus.FieldLogger, ms *session.MapleSession, r *request.RequestReader) {
 	p := ReadCharacterListWorldRequest(r)
 
-	w, err := processors.GetWorld(p.WorldId())
+	w, err := world.GetWorld(p.WorldId())
 	if err != nil {
 		l.WithError(err).Errorf("Received a character list request for a world we do not have")
 		return
 	}
 
-	if w.CapacityStatus() == status.Full {
-		(*ms).Announce(writer.WriteWorldCapacityStatus(status.Full))
+	if w.CapacityStatus() == world.StatusFull {
+		(*ms).Announce(writer.WriteWorldCapacityStatus(world.StatusFull))
 		return
 	}
 
 	(*ms).SetWorldId(p.WorldId())
 	(*ms).SetChannelId(p.ChannelId())
 
-	a, err := processors.GetAccountById((*ms).AccountId())
+	a, err := account.GetAccountById((*ms).AccountId())
 	if err != nil {
 		l.WithError(err).Errorf("Cannot retrieve account")
 		return
 	}
 
-	cs, err := processors.GetCharactersForWorld((*ms).AccountId(), p.WorldId())
+	cs, err := character.GetCharactersForWorld((*ms).AccountId(), p.WorldId())
 	if err != nil {
 		l.WithError(err).Errorf("Cannot retrieve account characters")
 		return

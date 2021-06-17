@@ -1,9 +1,8 @@
 package services
 
 import (
-	"atlas-clc/kafka/producers"
-	"atlas-clc/mapleSession"
-	"atlas-clc/registries"
+	"atlas-clc/character"
+	session2 "atlas-clc/session"
 	"github.com/jtumidanski/atlas-socket/session"
 	"github.com/sirupsen/logrus"
 	"net"
@@ -15,15 +14,15 @@ type Service interface {
 
 type mapleSessionService struct {
 	l logrus.FieldLogger
-	r *registries.SessionRegistry
+	r *session2.SessionRegistry
 }
 
 func NewMapleSessionService(l logrus.FieldLogger) Service {
-	return &mapleSessionService{l, registries.GetSessionRegistry()}
+	return &mapleSessionService{l, session2.GetSessionRegistry()}
 }
 
 func (s *mapleSessionService) Create(sessionId int, conn net.Conn) (session.Session, error) {
-	ses := mapleSession.NewSession(sessionId, conn)
+	ses := session2.NewSession(sessionId, conn)
 	s.r.Add(&ses)
 	ses.WriteHello()
 	return ses, nil
@@ -43,9 +42,9 @@ func (s *mapleSessionService) GetAll() []session.Session {
 }
 
 func (s *mapleSessionService) Destroy(sessionId int) {
-	ses := s.Get(sessionId).(mapleSession.MapleSession)
+	ses := s.Get(sessionId).(session2.MapleSession)
 
 	s.r.Remove(sessionId)
 
-	producers.Logout(s.l)(ses.WorldId(), ses.ChannelId(), ses.AccountId(), 0)
+	character.Logout(s.l)(ses.WorldId(), ses.ChannelId(), ses.AccountId(), 0)
 }

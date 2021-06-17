@@ -1,10 +1,11 @@
 package handler
 
 import (
-	"atlas-clc/mapleSession"
-	"atlas-clc/processors"
-	"atlas-clc/rest/attributes"
+	"atlas-clc/account"
+	"atlas-clc/login"
 	"atlas-clc/rest/requests"
+	"atlas-clc/rest/resources"
+	"atlas-clc/session"
 	"atlas-clc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/sirupsen/logrus"
@@ -43,22 +44,22 @@ func ReadLoginRequest(reader *request.RequestReader) *LoginRequest {
 type LoginHandler struct {
 }
 
-func (h *LoginHandler) IsValid(_ logrus.FieldLogger, _ *mapleSession.MapleSession) bool {
+func (h *LoginHandler) IsValid(_ logrus.FieldLogger, _ *session.MapleSession) bool {
 	return true
 }
 
-func (h *LoginHandler) HandleRequest(_ logrus.FieldLogger, ms *mapleSession.MapleSession, r *request.RequestReader) {
+func (h *LoginHandler) HandleRequest(_ logrus.FieldLogger, ms *session.MapleSession, r *request.RequestReader) {
 	p := ReadLoginRequest(r)
 
 	ip := (*ms).GetRemoteAddress().String()
-	resp, err := requests.CreateLogin((*ms).SessionId(), p.Login(), p.Password(), ip)
+	resp, err := login.CreateLogin((*ms).SessionId(), p.Login(), p.Password(), ip)
 	if err != nil {
 		h.announceSystemError(ms)
 		return
 	}
 
 	if resp.StatusCode != http.StatusNoContent {
-		eb := &attributes.ErrorListDataContainer{}
+		eb := &resources.ErrorListDataContainer{}
 		err = requests.ProcessErrorResponse(resp, eb)
 		if err != nil {
 			h.announceSystemError(ms)
@@ -77,19 +78,19 @@ func (h *LoginHandler) HandleRequest(_ logrus.FieldLogger, ms *mapleSession.Mapl
 	h.authorizeSuccess(ms, p.Login())
 }
 
-func (h *LoginHandler) authorizeSuccess(ms *mapleSession.MapleSession, name string) {
-	a, err := processors.GetAccountByName(name)
+func (h *LoginHandler) authorizeSuccess(ms *session.MapleSession, name string) {
+	a, err := account.GetAccountByName(name)
 	if err == nil {
 		(*ms).SetAccountId(a.Id())
 		(*ms).Announce(writer.WriteAuthSuccess(a.Id(), a.Name(), a.Gender(), a.PIC()))
 	}
 }
 
-func (h *LoginHandler) announceSystemError(ms *mapleSession.MapleSession) {
+func (h *LoginHandler) announceSystemError(ms *session.MapleSession) {
 	(*ms).Announce(writer.WriteLoginFailed(SystemError))
 }
 
-func (h LoginHandler) processFirstError(ms *mapleSession.MapleSession, data attributes.ErrorData) {
+func (h LoginHandler) processFirstError(ms *session.MapleSession, data resources.ErrorData) {
 	r := GetLoginFailedReason(data.Code)
 	if r == DeletedOrBlocked {
 		if data.Detail == "" {

@@ -1,7 +1,7 @@
 package writer
 
 import (
-	"atlas-clc/domain"
+	"atlas-clc/character"
 	"atlas-clc/socket/response"
 )
 
@@ -20,7 +20,7 @@ func WriteShowAllCharacter(characters uint32, unk uint32) []byte {
 	return w.Bytes()
 }
 
-func WriteShowAllCharacterInfo(worldId byte, characters []domain.Character, usePIC bool) []byte {
+func WriteShowAllCharacterInfo(worldId byte, characters []character.Model, usePIC bool) []byte {
 	w := response.NewWriter()
 	w.WriteShort(ViewAllCharacters)
 	w.WriteByte(0)

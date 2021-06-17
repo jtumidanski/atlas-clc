@@ -1,10 +1,11 @@
 package handler
 
 import (
-	"atlas-clc/domain"
-	"atlas-clc/mapleSession"
-	"atlas-clc/processors"
+	"atlas-clc/account"
+	"atlas-clc/character"
+	"atlas-clc/session"
 	"atlas-clc/socket/response/writer"
+	"atlas-clc/world"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/sirupsen/logrus"
 )
@@ -14,16 +15,16 @@ const OpCodeCharacterListAll uint16 = 0x0D
 type CharacterListAllHandler struct {
 }
 
-func (h *CharacterListAllHandler) IsValid(l logrus.FieldLogger, ms *mapleSession.MapleSession) bool {
-	v := processors.IsLoggedIn((*ms).AccountId())
+func (h *CharacterListAllHandler) IsValid(l logrus.FieldLogger, ms *session.MapleSession) bool {
+	v := account.IsLoggedIn((*ms).AccountId())
 	if !v {
 		l.Errorf("Attempting to process a [CharacterListAlLRequest] when the account %d is not logged in.", (*ms).SessionId())
 	}
 	return v
 }
 
-func (h *CharacterListAllHandler) HandleRequest(l logrus.FieldLogger, ms *mapleSession.MapleSession, _ *request.RequestReader) {
-	ws, err := processors.GetWorlds()
+func (h *CharacterListAllHandler) HandleRequest(l logrus.FieldLogger, ms *session.MapleSession, _ *request.RequestReader) {
+	ws, err := world.GetWorlds()
 	if err != nil {
 		l.WithError(err).Errorf("Unable to retrieve worlds")
 	}
@@ -32,7 +33,7 @@ func (h *CharacterListAllHandler) HandleRequest(l logrus.FieldLogger, ms *mapleS
 	h.announceAllCharacters(cm, ms)
 }
 
-func (h *CharacterListAllHandler) announceAllCharacters(cm map[byte][]domain.Character, ms *mapleSession.MapleSession) {
+func (h *CharacterListAllHandler) announceAllCharacters(cm map[byte][]character.Model, ms *session.MapleSession) {
 	cs := uint32(len(cm))
 	unk := cs + (3 - cs%3) // row size
 
@@ -42,10 +43,10 @@ func (h *CharacterListAllHandler) announceAllCharacters(cm map[byte][]domain.Cha
 	}
 }
 
-func (h *CharacterListAllHandler) getWorldCharacters(accountId uint32, ws []domain.World) map[byte][]domain.Character {
-	var cwm = make(map[byte][]domain.Character, 0)
+func (h *CharacterListAllHandler) getWorldCharacters(accountId uint32, ws []world.Model) map[byte][]character.Model {
+	var cwm = make(map[byte][]character.Model, 0)
 	for _, x := range ws {
-		cs, err := processors.GetCharactersForWorld(accountId, x.Id())
+		cs, err := character.GetCharactersForWorld(accountId, x.Id())
 		if err == nil {
 			cwm[x.Id()] = cs
 		}

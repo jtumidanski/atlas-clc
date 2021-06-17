@@ -1,10 +1,11 @@
 package main
 
 import (
+	"atlas-clc/configuration"
 	"atlas-clc/logger"
-	"atlas-clc/registries"
 	"atlas-clc/rest"
 	"atlas-clc/services"
+	"atlas-clc/session"
 	"atlas-clc/socket/request"
 	"atlas-clc/socket/request/handler"
 	"atlas-clc/tasks"
@@ -25,7 +26,7 @@ func main() {
 	wg := &sync.WaitGroup{}
 	ctx, cancel := context.WithCancel(context.Background())
 
-	config, err := registries.GetConfiguration()
+	config, err := configuration.GetConfiguration()
 	if err != nil {
 		l.WithError(err).Fatal("Unable to successfully load configuration.")
 	}
@@ -42,7 +43,7 @@ func main() {
 
 	rest.CreateRestService(l, ctx, wg)
 
-	go tasks.Register(tasks.NewTimeout(l, lss, time.Second*time.Duration(config.TimeoutTaskInterval)))
+	go tasks.Register(session.NewTimeout(l, lss, time.Second*time.Duration(config.TimeoutTaskInterval)))
 
 	// trap sigterm or interrupt and gracefully shutdown the server
 	c := make(chan os.Signal, 1)
@@ -54,7 +55,7 @@ func main() {
 	cancel()
 	wg.Wait()
 
-	sessions := registries.GetSessionRegistry().GetAll()
+	sessions := session.GetSessionRegistry().GetAll()
 	for _, s := range sessions {
 		lss.Destroy(s.SessionId())
 	}
