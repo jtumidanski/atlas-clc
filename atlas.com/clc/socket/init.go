@@ -35,19 +35,24 @@ func CreateSocketService(l *logrus.Logger, ctx context.Context, wg *sync.WaitGro
 
 func handlerProducer(l logrus.FieldLogger) socket.MessageHandlerProducer {
 	handlers := make(map[uint16]request2.Handler)
-	handlers[handler.OpCodeLogin] = request.AdaptHandler(l, request.NoOpValidator, handler.HandleLoginRequest)
-	handlers[handler.OpCodeServerListReRequest] = request.AdaptHandler(l, request.LoggedInValidator, handler.HandleServerListRequest)
-	handlers[handler.OpCodeCharacterListWorld] = request.AdaptHandler(l, request.LoggedInValidator, handler.HandleCharacterListWorldRequest)
-	handlers[handler.OpCodeServerStatus] = request.AdaptHandler(l, request.LoggedInValidator, handler.HandleServerStatusRequest)
-	handlers[handler.OpCodeServerRequest] = request.AdaptHandler(l, request.LoggedInValidator, handler.HandleServerListRequest)
-	handlers[handler.OpCodeClearWorldChannel] = request.AdaptHandler(l, request.LoggedInValidator, handler.HandleClearWorldChannelRequest)
-	handlers[handler.OpCodeCharacterListAll] = request.AdaptHandler(l, request.LoggedInValidator, handler.HandleCharacterListAllRequest)
-	handlers[handler.OpCodeCharacterSelectFromAll] = request.AdaptHandler(l, request.LoggedInValidator, handler.HandleCharacterSelectFromAllRequest)
-	handlers[handler.OpCodeCharacterSelectFromWorld] = request.AdaptHandler(l, request.LoggedInValidator, handler.HandleCharacterSelectFromWorldRequest)
-	handlers[handler.OpCodeCharacterCheckName] = request.AdaptHandler(l, request.LoggedInValidator, handler.HandleCheckCharacterNameRequest)
-	handlers[handler.OpCodeCharacterCreate] = request.AdaptHandler(l, request.LoggedInValidator, handler.HandleCreateCharacterRequest)
-	handlers[handler.OpCodePong] = request.AdaptHandler(l, request.LoggedInValidator, request.NoOpHandler)
-	handlers[handler.OpCodeClientStartError] = request.AdaptHandler(l, request.NoOpValidator, handler.HandleClientStartErrorRequest)
+	hr := func(op uint16, v request.MessageValidator, h request.MessageHandler) {
+		handlers[op] = request.AdaptHandler(l, v, h)
+	}
+
+	hr(handler.OpCodeLogin, request.NoOpValidator, handler.HandleLoginRequest)
+	hr(handler.OpCodeServerListReRequest, request.LoggedInValidator, handler.HandleServerListRequest)
+	hr(handler.OpCodeCharacterListWorld, request.LoggedInValidator, handler.HandleCharacterListWorldRequest)
+	hr(handler.OpCodeServerStatus, request.LoggedInValidator, handler.HandleServerStatusRequest)
+	hr(handler.OpCodeServerRequest, request.LoggedInValidator, handler.HandleServerListRequest)
+	hr(handler.OpCodeClearWorldChannel, request.LoggedInValidator, handler.HandleClearWorldChannelRequest)
+	hr(handler.OpCodeCharacterListAll, request.LoggedInValidator, handler.HandleCharacterListAllRequest)
+	hr(handler.OpCodeCharacterSelectFromAll, request.LoggedInValidator, handler.HandleCharacterSelectFromAllRequest)
+	hr(handler.OpCodeCharacterSelectFromWorld, request.LoggedInValidator, handler.HandleCharacterSelectFromWorldRequest)
+	hr(handler.OpCodeCharacterCheckName, request.LoggedInValidator, handler.HandleCheckCharacterNameRequest)
+	hr(handler.OpCodeCharacterCreate, request.LoggedInValidator, handler.HandleCreateCharacterRequest)
+	hr(handler.OpCodePong, request.LoggedInValidator, request.NoOpHandler)
+	hr(handler.OpCodeClientStartError, request.NoOpValidator, handler.HandleClientStartErrorRequest)
+
 	return func() map[uint16]request2.Handler {
 		return handlers
 	}
