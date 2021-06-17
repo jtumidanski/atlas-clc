@@ -15,6 +15,18 @@ func NewWriter(l logrus.FieldLogger) *Writer {
 	return &Writer{l, new(bytes.Buffer)}
 }
 
+// WriteInt8 -
+func (w *Writer) WriteInt8(data int8) { w.WriteByte(uint8(data)) }
+
+// WriteInt16 -
+func (w *Writer) WriteInt16(data int16) { w.WriteShort(uint16(data)) }
+
+// WriteInt32 -
+func (w *Writer) WriteInt32(data int32) { w.WriteInt(uint32(data)) }
+
+// WriteInt64 -
+func (w *Writer) WriteInt64(data int64) { w.WriteLong(uint64(data)) }
+
 func (w *Writer) WriteInt(val uint32) {
 	err := binary.Write(w.o, binary.LittleEndian, val)
 	if err != nil {
@@ -72,4 +84,12 @@ func (w *Writer) WriteKeyValue(key byte, value uint32) {
 
 func (w *Writer) Bytes() []byte {
 	return w.o.Bytes()
+}
+
+func (w *Writer) Skip(amount int) {
+	ba := make([]byte, 0)
+	for i := 0; i < amount; i++ {
+		ba = append(ba, 0)
+	}
+	w.WriteByteArray(ba)
 }
