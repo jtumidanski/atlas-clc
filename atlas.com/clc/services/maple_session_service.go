@@ -4,7 +4,6 @@ import (
 	"atlas-clc/kafka/producers"
 	"atlas-clc/mapleSession"
 	"atlas-clc/registries"
-	"context"
 	"github.com/jtumidanski/atlas-socket/session"
 	"github.com/sirupsen/logrus"
 	"net"
@@ -48,5 +47,5 @@ func (s *mapleSessionService) Destroy(sessionId int) {
 
 	s.r.Remove(sessionId)
 
-	producers.CharacterStatus(s.l, context.Background()).Logout(ses.WorldId(), ses.ChannelId(), ses.AccountId(), 0)
+	producers.Logout(s.l)(ses.WorldId(), ses.ChannelId(), ses.AccountId(), 0)
 }

@@ -10,7 +10,6 @@ import (
 	"atlas-clc/tasks"
 	"github.com/jtumidanski/atlas-socket"
 	"github.com/sirupsen/logrus"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -27,10 +26,7 @@ func main() {
 
 	lss := services.NewMapleSessionService(l)
 
-	w := l.Writer()
-	defer w.Close()
-
-	ss, err := socket.NewServer(log.New(w, "", 0), lss, socket.IpAddress("0.0.0.0"), socket.Port(8484))
+	ss, err := socket.NewServer(l, lss, socket.IpAddress("0.0.0.0"), socket.Port(8484))
 	if err != nil {
 		return
 	}

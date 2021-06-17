@@ -1,7 +1,6 @@
 package producers
 
 import (
-	"context"
 	"github.com/sirupsen/logrus"
 )
 
@@ -13,33 +12,16 @@ type characterStatusEvent struct {
 	Type        string `json:"type"`
 }
 
-var CharacterStatus = func(l logrus.FieldLogger, ctx context.Context) *characterStatus {
-	return &characterStatus{
-		l:   l,
-		ctx: ctx,
+func Logout(l logrus.FieldLogger) func(worldId byte, channelId byte, accountId uint32, characterId uint32) {
+	producer := ProduceEvent(l, "TOPIC_CHARACTER_STATUS")
+	return func(worldId byte, channelId byte, accountId uint32, characterId uint32) {
+		e := &characterStatusEvent{
+			WorldId:     worldId,
+			ChannelId:   channelId,
+			AccountId:   accountId,
+			CharacterId: characterId,
+			Type:        "LOGOUT",
+		}
+		producer(CreateKey(int(characterId)), e)
 	}
-}
-
-type characterStatus struct {
-	l   logrus.FieldLogger
-	ctx context.Context
-}
-
-func (m *characterStatus) Login(worldId byte, channelId byte, accountId uint32, characterId uint32) {
-	m.emit(worldId, channelId, accountId, characterId, "LOGIN")
-}
-
-func (m *characterStatus) Logout(worldId byte, channelId byte, accountId uint32, characterId uint32) {
-	m.emit(worldId, channelId, accountId, characterId, "LOGOUT")
-}
-
-func (m *characterStatus) emit(worldId byte, channelId byte, accountId uint32, characterId uint32, theType string) {
-	e := &characterStatusEvent{
-		WorldId:     worldId,
-		ChannelId:   channelId,
-		AccountId:   accountId,
-		CharacterId: characterId,
-		Type:        theType,
-	}
-	produceEvent(m.l, "TOPIC_CHARACTER_STATUS", createKey(int(characterId)), e)
 }
