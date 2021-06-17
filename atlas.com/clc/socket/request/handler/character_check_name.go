@@ -41,12 +41,12 @@ func (h *CharacterCheckNameHandler) HandleRequest(l logrus.FieldLogger, ms *sess
 	ok, err := character.IsValidName(p.Name())
 	if err != nil {
 		l.WithError(err).Errorf("Validating character name on creation")
-		err = (*ms).Announce(writer.WriteCharacterNameCheck(p.Name(), true))
+		err = (*ms).Announce(writer.WriteCharacterNameCheck(l)(p.Name(), true))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to issue character name validation error")
 		}
 	}
-	err = (*ms).Announce(writer.WriteCharacterNameCheck(p.Name(), !ok))
+	err = (*ms).Announce(writer.WriteCharacterNameCheck(l)(p.Name(), !ok))
 	if err != nil {
 		l.WithError(err).Errorf("Unable to inform character name validation success")
 	}

@@ -37,12 +37,12 @@ func (h *CharacterListAllHandler) announceAllCharacters(l logrus.FieldLogger, cm
 	cs := uint32(len(cm))
 	unk := cs + (3 - cs%3) // row size
 
-	err := (*ms).Announce(writer.WriteShowAllCharacter(cs, unk))
+	err := (*ms).Announce(writer.WriteShowAllCharacter(l)(cs, unk))
 	if err != nil {
 		l.WithError(err).Errorf("Unable to show all characters")
 	}
 	for k, v := range cm {
-		err = (*ms).Announce(writer.WriteShowAllCharacterInfo(k, v, false))
+		err = (*ms).Announce(writer.WriteShowAllCharacterInfo(l)(k, v, false))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to show character information")
 		}

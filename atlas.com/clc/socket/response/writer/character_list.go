@@ -5,21 +5,24 @@ import (
 	"atlas-clc/inventory"
 	"atlas-clc/pet"
 	"atlas-clc/socket/response"
+	"github.com/sirupsen/logrus"
 )
 
 const OpCodeCharacterList uint16 = 0x0B
 
-func WriteCharacterList(characters []character.Model, worldId byte, status int, cannotBypassPic bool, pic string, availableCharacterSlots int16, characterSlots int16) []byte {
-	w := response.NewWriter()
-	w.WriteShort(OpCodeCharacterList)
-	w.WriteByte(byte(status))
-	w.WriteByte(byte(len(characters)))
-	for _, x := range characters {
-		WriteCharacter(w, x, false)
+func WriteCharacterList(l logrus.FieldLogger) func(characters []character.Model, worldId byte, status int, cannotBypassPic bool, pic string, availableCharacterSlots int16, characterSlots int16) []byte {
+	return func(characters []character.Model, worldId byte, status int, cannotBypassPic bool, pic string, availableCharacterSlots int16, characterSlots int16) []byte {
+		w := response.NewWriter(l)
+		w.WriteShort(OpCodeCharacterList)
+		w.WriteByte(byte(status))
+		w.WriteByte(byte(len(characters)))
+		for _, x := range characters {
+			WriteCharacter(w, x, false)
+		}
+		w.WriteByte(2)
+		w.WriteInt(uint32(characterSlots))
+		return w.Bytes()
 	}
-	w.WriteByte(2)
-	w.WriteInt(uint32(characterSlots))
-	return w.Bytes()
 }
 
 func WriteCharacter(w *response.Writer, character character.Model, viewAll bool) {

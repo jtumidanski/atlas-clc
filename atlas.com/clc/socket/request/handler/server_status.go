@@ -39,7 +39,7 @@ func (h *ServerStatusHandler) HandleRequest(l logrus.FieldLogger, ms *session.Ma
 	p := ReadServerStatusRequest(r)
 
 	cs := world.GetWorldCapacityStatus(p.WorldId())
-	err := (*ms).Announce(writer.WriteWorldCapacityStatus(cs))
+	err := (*ms).Announce(writer.WriteWorldCapacityStatus(l)(cs))
 	if err != nil {
 		l.WithError(err).Errorf("Unable to issue world capacity status information")
 	}

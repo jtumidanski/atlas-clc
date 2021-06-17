@@ -122,7 +122,7 @@ func (h *CharacterCreateHandler) HandleRequest(l logrus.FieldLogger, ms *session
 		return
 	}
 
-	err = (*ms).Announce(writer.WriteCharacterViewAddNew(*c))
+	err = (*ms).Announce(writer.WriteCharacterViewAddNew(l)(*c))
 	if err != nil {
 		l.WithError(err).Errorf("Unable to return to the character view, with the newly created character")
 	}

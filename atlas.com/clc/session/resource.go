@@ -5,7 +5,6 @@ import (
 	"atlas-clc/socket/response/writer"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -30,12 +29,12 @@ func HandleGetSessions(l logrus.FieldLogger) http.HandlerFunc {
 
 func HandleLoginError(l logrus.FieldLogger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		sessionId := getSessionId(r)
-		errorId := getErrorId(r)
+		sessionId := getSessionId(l, r)
+		errorId := getErrorId(l, r)
 
 		ses := GetRegistry().Get(sessionId)
 		if ses != nil {
-			err := ses.Announce(writer.WriteLoginFailed(errorId))
+			err := ses.Announce(writer.WriteLoginFailed(l)(errorId))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to issue login failed due to reason %d", errorId)
 			}
@@ -46,21 +45,21 @@ func HandleLoginError(l logrus.FieldLogger) http.HandlerFunc {
 	}
 }
 
-func getSessionId(r *http.Request) int {
+func getSessionId(l logrus.FieldLogger, r *http.Request) int {
 	vars := mux.Vars(r)
 	value, err := strconv.Atoi(vars["sessionId"])
 	if err != nil {
-		log.Println("Error parsing worldId as integer")
+		l.Println("Error parsing worldId as integer")
 		return 0
 	}
 	return value
 }
 
-func getErrorId(r *http.Request) byte {
+func getErrorId(l logrus.FieldLogger, r *http.Request) byte {
 	vars := mux.Vars(r)
 	value, err := strconv.Atoi(vars["errorId"])
 	if err != nil {
-		log.Println("Error parsing worldId as integer")
+		l.Println("Error parsing worldId as integer")
 		return 0
 	}
 	return byte(value)

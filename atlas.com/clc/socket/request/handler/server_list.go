@@ -68,14 +68,14 @@ func (h *ServerListHandler) announceRecommendedWorlds(l logrus.FieldLogger, ws [
 			rs = append(rs, x.Recommendation())
 		}
 	}
-	err := (*ms).Announce(writer.WriteRecommendedWorlds(rs))
+	err := (*ms).Announce(writer.WriteRecommendedWorlds(l)(rs))
 	if err != nil {
 		l.WithError(err).Errorf("Unable to issue recommended worlds")
 	}
 }
 
 func (h *ServerListHandler) announceLastWorld(l logrus.FieldLogger, ms *session.MapleSession) {
-	err := (*ms).Announce(writer.WriteSelectWorld(0))
+	err := (*ms).Announce(writer.WriteSelectWorld(l)(0))
 	if err != nil {
 		l.WithError(err).Errorf("Unable to identify the last world a account was logged into")
 	}
@@ -83,12 +83,12 @@ func (h *ServerListHandler) announceLastWorld(l logrus.FieldLogger, ms *session.
 
 func (h *ServerListHandler) announceServerList(l logrus.FieldLogger, ws []world.Model, ms *session.MapleSession) {
 	for _, x := range ws {
-		err := (*ms).Announce(writer.WriteServerListEntry(x.Id(), x.Name(), x.Flag(), x.EventMessage(), x.ChannelLoad()))
+		err := (*ms).Announce(writer.WriteServerListEntry(l)(x.Id(), x.Name(), x.Flag(), x.EventMessage(), x.ChannelLoad()))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to write server list entry for %d", x.Id())
 		}
 	}
-	err := (*ms).Announce(writer.WriteServerListEnd())
+	err := (*ms).Announce(writer.WriteServerListEnd(l))
 	if err != nil {
 		l.WithError(err).Errorf("Unable to complete writing the server list")
 	}

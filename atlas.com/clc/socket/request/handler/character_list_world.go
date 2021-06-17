@@ -54,7 +54,7 @@ func (h *CharacterListWorldHandler) HandleRequest(l logrus.FieldLogger, ms *sess
 	}
 
 	if w.CapacityStatus() == world.StatusFull {
-		err = (*ms).Announce(writer.WriteWorldCapacityStatus(world.StatusFull))
+		err = (*ms).Announce(writer.WriteWorldCapacityStatus(l)(world.StatusFull))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to show that world %d is full", w.Id())
 		}
@@ -76,7 +76,7 @@ func (h *CharacterListWorldHandler) HandleRequest(l logrus.FieldLogger, ms *sess
 		return
 	}
 
-	err = (*ms).Announce(writer.WriteCharacterList(cs, p.WorldId(), 0, true, a.PIC(), int16(1), a.CharacterSlots()))
+	err = (*ms).Announce(writer.WriteCharacterList(l)(cs, p.WorldId(), 0, true, a.PIC(), int16(1), a.CharacterSlots()))
 	if err != nil {
 		l.WithError(err).Errorf("Unable to show character list")
 	}
