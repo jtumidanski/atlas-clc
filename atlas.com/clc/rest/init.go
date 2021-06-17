@@ -16,10 +16,10 @@ func CreateRestService(l *logrus.Logger, ctx context.Context, wg *sync.WaitGroup
 func ProduceRoutes(l logrus.FieldLogger) http.Handler {
 	router := mux.NewRouter().PathPrefix("/ms/clc").Subrouter().StrictSlash(true)
 	router.Use(CommonHeader)
-	s := session.NewSessionResource(l)
+
 	sRouter := router.PathPrefix("/sessions").Subrouter()
-	sRouter.HandleFunc("", s.GetSessions)
-	sRouter.HandleFunc("/{sessionId}/errors/{errorId}", s.LoginError)
+	sRouter.HandleFunc("", session.HandleGetSessions(l)).Methods(http.MethodGet)
+	sRouter.HandleFunc("/{sessionId}/errors/{errorId}", session.HandleLoginError(l)).Methods(http.MethodGet)
 
 	return router
 }

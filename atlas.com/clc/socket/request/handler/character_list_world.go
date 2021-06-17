@@ -47,7 +47,7 @@ func (h *CharacterListWorldHandler) IsValid(l logrus.FieldLogger, ms *session.Ma
 func (h *CharacterListWorldHandler) HandleRequest(l logrus.FieldLogger, ms *session.MapleSession, r *request.RequestReader) {
 	p := ReadCharacterListWorldRequest(r)
 
-	w, err := world.GetWorld(p.WorldId())
+	w, err := world.GetById(p.WorldId())
 	if err != nil {
 		l.WithError(err).Errorf("Received a character list request for a world we do not have")
 		return

@@ -24,7 +24,7 @@ func (h *CharacterListAllHandler) IsValid(l logrus.FieldLogger, ms *session.Mapl
 }
 
 func (h *CharacterListAllHandler) HandleRequest(l logrus.FieldLogger, ms *session.MapleSession, _ *request.RequestReader) {
-	ws, err := world.GetWorlds()
+	ws, err := world.GetAll()
 	if err != nil {
 		l.WithError(err).Errorf("Unable to retrieve worlds")
 	}

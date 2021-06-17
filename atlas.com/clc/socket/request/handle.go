@@ -18,7 +18,7 @@ type MapleHandler interface {
 
 func AdaptHandler(l logrus.FieldLogger, h MapleHandler) func(int, request.RequestReader) {
 	return func(sessionId int, r request.RequestReader) {
-		s := session.GetSessionRegistry().Get(sessionId)
+		s := session.GetRegistry().Get(sessionId)
 		if s != nil {
 			if h.IsValid(l, &s) {
 				h.HandleRequest(l, &s, &r)

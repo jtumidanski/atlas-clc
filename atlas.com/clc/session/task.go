@@ -29,7 +29,7 @@ func NewTimeout(l logrus.FieldLogger, lss session.Service, interval time.Duratio
 }
 
 func (t *Timeout) Run() {
-	sessions := GetSessionRegistry().GetAll()
+	sessions := GetRegistry().GetAll()
 	cur := time.Now()
 
 	for _, s := range sessions {

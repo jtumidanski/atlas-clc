@@ -1,65 +1,45 @@
 package session
 
 import (
-   "atlas-clc/json"
-   "atlas-clc/socket/response/writer"
-   "github.com/gorilla/mux"
-   "github.com/sirupsen/logrus"
-   "log"
-   "net/http"
-   "strconv"
+	"atlas-clc/json"
+	"atlas-clc/socket/response/writer"
+	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
+	"log"
+	"net/http"
+	"strconv"
 )
 
-type SessionListDataContainer struct {
-	Data []SessionData `json:"data"`
-}
+func HandleGetSessions(l logrus.FieldLogger) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ss := GetRegistry().GetAll()
 
-type SessionData struct {
-	Id         string            `json:"id"`
-	Type       string            `json:"type"`
-	Attributes SessionAttributes `json:"attributes"`
-}
+		var response dataListContainer
+		response.Data = make([]dataBody, 0)
+		for _, x := range ss {
+			response.Data = append(response.Data, *getSessionObject(x))
+		}
 
-type SessionAttributes struct {
-	AccountId uint32 `json:"accountId"`
-	WorldId   byte   `json:"worldId"`
-	ChannelId byte   `json:"channelId"`
-}
-
-type SessionResource struct {
-	l logrus.FieldLogger
-}
-
-func NewSessionResource(l logrus.FieldLogger) *SessionResource {
-	return &SessionResource{l}
-}
-
-func (s *SessionResource) GetSessions(rw http.ResponseWriter, _ *http.Request) {
-	ss := GetSessionRegistry().GetAll()
-
-	var response SessionListDataContainer
-	response.Data = make([]SessionData, 0)
-	for _, x := range ss {
-		response.Data = append(response.Data, *getSessionObject(x))
-	}
-
-	err := json.ToJSON(response, rw)
-	if err != nil {
-		s.l.WithError(err).Errorf("Error encoding GetSessions response")
-		rw.WriteHeader(http.StatusInternalServerError)
+		err := json.ToJSON(response, w)
+		if err != nil {
+			l.WithError(err).Errorf("Error encoding GetSessions response")
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 	}
 }
 
-func (s *SessionResource) LoginError(rw http.ResponseWriter, r *http.Request) {
-	sessionId := getSessionId(r)
-	errorId := getErrorId(r)
+func HandleLoginError(l logrus.FieldLogger) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		sessionId := getSessionId(r)
+		errorId := getErrorId(r)
 
-	ses := GetSessionRegistry().Get(sessionId)
-	if ses != nil {
-		ses.Announce(writer.WriteLoginFailed(errorId))
-		rw.WriteHeader(http.StatusNoContent)
-	} else {
-		rw.WriteHeader(http.StatusNotFound)
+		ses := GetRegistry().Get(sessionId)
+		if ses != nil {
+			ses.Announce(writer.WriteLoginFailed(errorId))
+			w.WriteHeader(http.StatusNoContent)
+		} else {
+			w.WriteHeader(http.StatusNotFound)
+		}
 	}
 }
 
@@ -83,11 +63,11 @@ func getErrorId(r *http.Request) byte {
 	return byte(value)
 }
 
-func getSessionObject(x MapleSession) *SessionData {
-	return &SessionData{
+func getSessionObject(x MapleSession) *dataBody {
+	return &dataBody{
 		Id:   strconv.Itoa(x.SessionId()),
 		Type: "Session",
-		Attributes: SessionAttributes{
+		Attributes: attributes{
 			AccountId: x.AccountId(),
 			WorldId:   x.WorldId(),
 			ChannelId: x.ChannelId(),

@@ -1,8 +1,7 @@
-package services
+package session
 
 import (
 	"atlas-clc/character"
-	session2 "atlas-clc/session"
 	"github.com/jtumidanski/atlas-socket/session"
 	"github.com/sirupsen/logrus"
 	"net"
@@ -14,15 +13,15 @@ type Service interface {
 
 type mapleSessionService struct {
 	l logrus.FieldLogger
-	r *session2.SessionRegistry
+	r *Registry
 }
 
 func NewMapleSessionService(l logrus.FieldLogger) Service {
-	return &mapleSessionService{l, session2.GetSessionRegistry()}
+	return &mapleSessionService{l, GetRegistry()}
 }
 
 func (s *mapleSessionService) Create(sessionId int, conn net.Conn) (session.Session, error) {
-	ses := session2.NewSession(sessionId, conn)
+	ses := NewSession(sessionId, conn)
 	s.r.Add(&ses)
 	ses.WriteHello()
 	return ses, nil
@@ -42,7 +41,7 @@ func (s *mapleSessionService) GetAll() []session.Session {
 }
 
 func (s *mapleSessionService) Destroy(sessionId int) {
-	ses := s.Get(sessionId).(session2.MapleSession)
+	ses := s.Get(sessionId).(MapleSession)
 
 	s.r.Remove(sessionId)
 

@@ -4,7 +4,6 @@ import (
 	"atlas-clc/configuration"
 	"atlas-clc/logger"
 	"atlas-clc/rest"
-	"atlas-clc/services"
 	"atlas-clc/session"
 	"atlas-clc/socket/request"
 	"atlas-clc/socket/request/handler"
@@ -31,7 +30,7 @@ func main() {
 		l.WithError(err).Fatal("Unable to successfully load configuration.")
 	}
 
-	lss := services.NewMapleSessionService(l)
+	lss := session.NewMapleSessionService(l)
 
 	ss, err := socket.NewServer(l, lss, socket.IpAddress("0.0.0.0"), socket.Port(8484))
 	if err != nil {
@@ -55,7 +54,7 @@ func main() {
 	cancel()
 	wg.Wait()
 
-	sessions := session.GetSessionRegistry().GetAll()
+	sessions := session.GetRegistry().GetAll()
 	for _, s := range sessions {
 		lss.Destroy(s.SessionId())
 	}

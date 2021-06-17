@@ -2,18 +2,18 @@ package world
 
 import "atlas-clc/rest/response"
 
-type WorldDataContainer struct {
+type dataContainer struct {
 	data     response.DataSegment
 	included response.DataSegment
 }
 
-type WorldData struct {
-	Id         string          `json:"id"`
-	Type       string          `json:"type"`
-	Attributes WorldAttributes `json:"attributes"`
+type dataBody struct {
+	Id         string     `json:"id"`
+	Type       string     `json:"type"`
+	Attributes attributes `json:"attributes"`
 }
 
-type WorldAttributes struct {
+type attributes struct {
 	Name               string `json:"name"`
 	Flag               int    `json:"flag"`
 	Message            string `json:"message"`
@@ -23,7 +23,7 @@ type WorldAttributes struct {
 	CapacityStatus     uint16 `json:"capacityStatus"`
 }
 
-func (c *WorldDataContainer) UnmarshalJSON(data []byte) error {
+func (c *dataContainer) UnmarshalJSON(data []byte) error {
 	d, i, err := response.UnmarshalRoot(data, response.MapperFunc(EmptyWorldData))
 	if err != nil {
 		return err
@@ -34,21 +34,21 @@ func (c *WorldDataContainer) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (c *WorldDataContainer) Data() *WorldData {
+func (c *dataContainer) Data() *dataBody {
 	if len(c.data) >= 1 {
-		return c.data[0].(*WorldData)
+		return c.data[0].(*dataBody)
 	}
 	return nil
 }
 
-func (c *WorldDataContainer) DataList() []WorldData {
-	var r = make([]WorldData, 0)
+func (c *dataContainer) DataList() []dataBody {
+	var r = make([]dataBody, 0)
 	for _, x := range c.data {
-		r = append(r, *x.(*WorldData))
+		r = append(r, *x.(*dataBody))
 	}
 	return r
 }
 
 func EmptyWorldData() interface{} {
-	return &WorldData{}
+	return &dataBody{}
 }

@@ -63,7 +63,7 @@ func (h *CharacterSelectFromAllHandler) HandleRequest(l logrus.FieldLogger, ms *
 	}
 	(*ms).SetWorldId(c.Attributes().WorldId())
 
-	w, err := world.GetWorld((*ms).WorldId())
+	w, err := world.GetById((*ms).WorldId())
 	if err != nil {
 		l.WithError(err).Errorf("Unable to retrieve world logged into by session")
 		return

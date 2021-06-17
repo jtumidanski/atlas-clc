@@ -4,7 +4,7 @@ import (
    "strconv"
 )
 
-func GetWorlds() ([]Model, error) {
+func GetAll() ([]Model, error) {
 	r, err := requestWorlds()
 	if err != nil {
 		return nil, err
@@ -20,7 +20,7 @@ func GetWorlds() ([]Model, error) {
 	return ws, nil
 }
 
-func GetWorld(worldId byte) (*Model, error) {
+func GetById(worldId byte) (*Model, error) {
 	r, err := requestWorld(worldId)
 	if err != nil {
 		return nil, err
@@ -29,7 +29,7 @@ func GetWorld(worldId byte) (*Model, error) {
 	return makeWorld(*r.Data())
 }
 
-func makeWorld(data WorldData) (*Model, error) {
+func makeWorld(data dataBody) (*Model, error) {
 	wid, err := strconv.Atoi(data.Id)
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func makeWorld(data WorldData) (*Model, error) {
 }
 
 func GetWorldCapacityStatus(worldId byte) uint16 {
-	w, err := GetWorld(worldId)
+	w, err := GetById(worldId)
 	if err != nil {
 		return StatusFull
 	}
