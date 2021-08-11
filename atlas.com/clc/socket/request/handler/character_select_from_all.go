@@ -40,7 +40,7 @@ func ReadCharacterSelectFromAll(reader *request.RequestReader) *CharacterSelectF
 func HandleCharacterSelectFromAllRequest(l logrus.FieldLogger, ms *session.Model, r *request.RequestReader) {
 	p := ReadCharacterSelectFromAll(r)
 
-	c, err := character.GetById(uint32(p.CharacterId()))
+	c, err := character.GetById(l)(uint32(p.CharacterId()))
 	if err != nil {
 		l.WithError(err).Errorf("Unable to retrieve selected character by id")
 		return
@@ -51,7 +51,7 @@ func HandleCharacterSelectFromAllRequest(l logrus.FieldLogger, ms *session.Model
 	}
 	ms.SetWorldId(c.Properties().WorldId())
 
-	w, err := world.GetById(ms.WorldId())
+	w, err := world.GetById(l)(ms.WorldId())
 	if err != nil {
 		l.WithError(err).Errorf("Unable to retrieve world logged into by session")
 		return
@@ -62,7 +62,7 @@ func HandleCharacterSelectFromAllRequest(l logrus.FieldLogger, ms *session.Model
 		return
 	}
 
-	cs, err := channel.GetAllForWorld(ms.WorldId())
+	cs, err := channel.GetAllForWorld(l)(ms.WorldId())
 	// initialize global pseudo random generator
 	rand.Seed(time.Now().Unix())
 	ch := cs[rand.Intn(len(cs))]

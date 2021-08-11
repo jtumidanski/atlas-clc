@@ -33,13 +33,13 @@ func ReadCharacterSelectFromWorldRequest(reader *request.RequestReader) *Charact
 func HandleCharacterSelectFromWorldRequest(l logrus.FieldLogger, ms *session.Model, r *request.RequestReader) {
 	p := ReadCharacterSelectFromWorldRequest(r)
 
-	c, err := character.GetById(uint32(p.CharacterId()))
+	c, err := character.GetById(l)(uint32(p.CharacterId()))
 	if err != nil {
 		l.WithError(err).Errorf("Unable to retrieve selected character by id")
 		return
 	}
 
-	w, err := world.GetById(ms.WorldId())
+	w, err := world.GetById(l)(ms.WorldId())
 	if err != nil {
 		l.WithError(err).Errorf("Unable to retrieve world logged into by session")
 		return
@@ -50,7 +50,7 @@ func HandleCharacterSelectFromWorldRequest(l logrus.FieldLogger, ms *session.Mod
 		return
 	}
 
-	ch, err := channel.GetForWorldById(ms.WorldId(), ms.ChannelId())
+	ch, err := channel.GetForWorldById(l)(ms.WorldId(), ms.ChannelId())
 	if err != nil {
 		l.WithError(err).Errorf("Unable to retrieve channel in world")
 		return

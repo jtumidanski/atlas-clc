@@ -72,7 +72,7 @@ func HandleLoginRequest(l logrus.FieldLogger, ms *session.Model, r *request.Requ
 }
 
 func authorizeSuccess(l logrus.FieldLogger, ms *session.Model, name string) {
-	a, err := account.GetByName(name)
+	a, err := account.GetByName(l)(name)
 	if err == nil {
 		ms.SetAccountId(a.Id())
 		err = ms.Announce(writer.WriteAuthSuccess(l)(a.Id(), a.Name(), a.Gender(), a.PIC()))

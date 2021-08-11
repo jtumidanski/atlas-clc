@@ -12,12 +12,12 @@ import (
 const OpCodeCharacterListAll uint16 = 0x0D
 
 func HandleCharacterListAllRequest(l logrus.FieldLogger, ms *session.Model, _ *request.RequestReader) {
-	ws, err := world.GetAll()
+	ws, err := world.GetAll(l)
 	if err != nil {
 		l.WithError(err).Errorf("Unable to retrieve worlds")
 	}
 
-	cm := getWorldCharacters(ms.AccountId(), ws)
+	cm := getWorldCharacters(l)(ms.AccountId(), ws)
 	announceAllCharacters(l, cm, ms)
 }
 
@@ -37,13 +37,15 @@ func announceAllCharacters(l logrus.FieldLogger, cm map[byte][]character.Model, 
 	}
 }
 
-func getWorldCharacters(accountId uint32, ws []world.Model) map[byte][]character.Model {
-	var cwm = make(map[byte][]character.Model, 0)
-	for _, x := range ws {
-		cs, err := character.GetForWorld(accountId, x.Id())
-		if err == nil {
-			cwm[x.Id()] = cs
+func getWorldCharacters(l logrus.FieldLogger) func(accountId uint32, ws []world.Model) map[byte][]character.Model {
+	return func(accountId uint32, ws []world.Model) map[byte][]character.Model {
+		var cwm = make(map[byte][]character.Model, 0)
+		for _, x := range ws {
+			cs, err := character.GetForWorld(l)(accountId, x.Id())
+			if err == nil {
+				cwm[x.Id()] = cs
+			}
 		}
+		return cwm
 	}
-	return cwm
 }

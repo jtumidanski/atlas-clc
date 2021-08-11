@@ -3,6 +3,7 @@ package world
 import (
 	"atlas-clc/rest/requests"
 	"fmt"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -12,20 +13,22 @@ const (
 	WorldsById            = WorldsResource + "%d"
 )
 
-func requestWorlds() (*dataContainer, error) {
+func requestWorlds(l logrus.FieldLogger) (*dataContainer, error) {
 	r := &dataContainer{}
-	err := requests.Get(WorldsResource, r)
+	err := requests.Get(l)(WorldsResource, r)
 	if err != nil {
 		return nil, err
 	}
 	return r, nil
 }
 
-func requestWorld(worldId byte) (*dataContainer, error) {
-	r := &dataContainer{}
-	err := requests.Get(fmt.Sprintf(WorldsById, worldId), r)
-	if err != nil {
-		return nil, err
+func requestWorld(l logrus.FieldLogger) func(worldId byte) (*dataContainer, error) {
+	return func(worldId byte) (*dataContainer, error) {
+		r := &dataContainer{}
+		err := requests.Get(l)(fmt.Sprintf(WorldsById, worldId), r)
+		if err != nil {
+			return nil, err
+		}
+		return r, nil
 	}
-	return r, nil
 }

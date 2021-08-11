@@ -2,10 +2,11 @@ package channel
 
 import (
 	"errors"
+	"github.com/sirupsen/logrus"
 )
 
-func GetAll() ([]Model, error) {
-	r, err := requestChannels()
+func GetAll(l logrus.FieldLogger) ([]Model, error) {
+	r, err := requestChannels(l)
 	if err != nil {
 		return nil, err
 	}
@@ -14,33 +15,37 @@ func GetAll() ([]Model, error) {
 	return cs, nil
 }
 
-func GetAllForWorld(worldId byte) ([]Model, error) {
-	r, err := requestChannelsForWorld(worldId)
-	if err != nil {
-		return nil, err
-	}
-
-	var cs = makeChannelList(r.DataList())
-	return cs, nil
-}
-
-func GetForWorldById(worldId byte, channelId byte) (*Model, error) {
-	r, err := requestChannelsForWorld(worldId)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, x := range r.DataList() {
-		w := makeChannel(x)
-		if w.ChannelId() == channelId {
-			return &w, nil
+func GetAllForWorld(l logrus.FieldLogger) func(worldId byte) ([]Model, error) {
+	return func(worldId byte) ([]Model, error) {
+		r, err := requestChannelsForWorld(l)(worldId)
+		if err != nil {
+			return nil, err
 		}
+
+		var cs = makeChannelList(r.DataList())
+		return cs, nil
 	}
-	return nil, errors.New("unable to locate channel for world")
 }
 
-func GetChannelLoadByWorld() (map[int][]Load, error) {
-	cs, err := GetAll()
+func GetForWorldById(l logrus.FieldLogger) func(worldId byte, channelId byte) (*Model, error) {
+	return func(worldId byte, channelId byte) (*Model, error) {
+		r, err := requestChannelsForWorld(l)(worldId)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, x := range r.DataList() {
+			w := makeChannel(x)
+			if w.ChannelId() == channelId {
+				return &w, nil
+			}
+		}
+		return nil, errors.New("unable to locate channel for world")
+	}
+}
+
+func GetChannelLoadByWorld(l logrus.FieldLogger) (map[int][]Load, error) {
+	cs, err := GetAll(l)
 	if err != nil {
 		return nil, err
 	}

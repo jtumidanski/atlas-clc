@@ -26,7 +26,7 @@ func ReadCharacterCheckNameRequest(reader *request.RequestReader) *CharacterChec
 func HandleCheckCharacterNameRequest(l logrus.FieldLogger, ms *session.Model, r *request.RequestReader) {
 	p := ReadCharacterCheckNameRequest(r)
 
-	ok, err := character.IsValidName(p.Name())
+	ok, err := character.IsValidName(l)(p.Name())
 	if err != nil {
 		l.WithError(err).Errorf("Validating character name on creation")
 		err = ms.Announce(writer.WriteCharacterNameCheck(l)(p.Name(), true))

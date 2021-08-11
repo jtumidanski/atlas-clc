@@ -36,7 +36,7 @@ func ReadCharacterListWorldRequest(reader *request.RequestReader) *CharacterList
 func HandleCharacterListWorldRequest(l logrus.FieldLogger, ms *session.Model, r *request.RequestReader) {
 	p := ReadCharacterListWorldRequest(r)
 
-	w, err := world.GetById(p.WorldId())
+	w, err := world.GetById(l)(p.WorldId())
 	if err != nil {
 		l.WithError(err).Errorf("Received a character list request for a world we do not have")
 		return
@@ -53,13 +53,13 @@ func HandleCharacterListWorldRequest(l logrus.FieldLogger, ms *session.Model, r 
 	ms.SetWorldId(p.WorldId())
 	ms.SetChannelId(p.ChannelId())
 
-	a, err := account.GetById(ms.AccountId())
+	a, err := account.GetById(l)(ms.AccountId())
 	if err != nil {
 		l.WithError(err).Errorf("Cannot retrieve account")
 		return
 	}
 
-	cs, err := character.GetForWorld(ms.AccountId(), p.WorldId())
+	cs, err := character.GetForWorld(l)(ms.AccountId(), p.WorldId())
 	if err != nil {
 		l.WithError(err).Errorf("Cannot retrieve account characters")
 		return

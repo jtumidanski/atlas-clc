@@ -3,6 +3,7 @@ package character
 import (
 	"atlas-clc/rest/requests"
 	"fmt"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -15,31 +16,37 @@ const (
 	CharacterSeeds                     = CharactersResource + "seeds"
 )
 
-func requestPropertiesByName(name string) (*propertiesDataContainer, error) {
-	ar := &propertiesDataContainer{}
-	err := requests.Get(fmt.Sprintf(CharactersByName, name), ar)
-	if err != nil {
-		return nil, err
+func requestPropertiesByName(l logrus.FieldLogger) func(name string) (*propertiesDataContainer, error) {
+	return func(name string) (*propertiesDataContainer, error) {
+		ar := &propertiesDataContainer{}
+		err := requests.Get(l)(fmt.Sprintf(CharactersByName, name), ar)
+		if err != nil {
+			return nil, err
+		}
+		return ar, nil
 	}
-	return ar, nil
 }
 
-func requestPropertiesByAccountAndWorld(accountId uint32, worldId byte) (*propertiesDataContainer, error) {
-	ar := &propertiesDataContainer{}
-	err := requests.Get(fmt.Sprintf(CharactersForAccountByWorld, accountId, worldId), ar)
-	if err != nil {
-		return nil, err
+func requestPropertiesByAccountAndWorld(l logrus.FieldLogger) func(accountId uint32, worldId byte) (*propertiesDataContainer, error) {
+	return func(accountId uint32, worldId byte) (*propertiesDataContainer, error) {
+		ar := &propertiesDataContainer{}
+		err := requests.Get(l)(fmt.Sprintf(CharactersForAccountByWorld, accountId, worldId), ar)
+		if err != nil {
+			return nil, err
+		}
+		return ar, nil
 	}
-	return ar, nil
 }
 
-func requestPropertiesById(characterId uint32) (*propertiesDataContainer, error) {
-	ar := &propertiesDataContainer{}
-	err := requests.Get(fmt.Sprintf(CharactersById, characterId), ar)
-	if err != nil {
-		return nil, err
+func requestPropertiesById(l logrus.FieldLogger) func(characterId uint32) (*propertiesDataContainer, error) {
+	return func(characterId uint32) (*propertiesDataContainer, error) {
+		ar := &propertiesDataContainer{}
+		err := requests.Get(l)(fmt.Sprintf(CharactersById, characterId), ar)
+		if err != nil {
+			return nil, err
+		}
+		return ar, nil
 	}
-	return ar, nil
 }
 
 func seedCharacter(accountId uint32, worldId byte, name string, job uint32, face uint32, hair uint32, color uint32, skinColor uint32, gender byte, top uint32, bottom uint32, shoes uint32, weapon uint32) (*propertiesDataBody, error) {

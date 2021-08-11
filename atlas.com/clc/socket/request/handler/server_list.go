@@ -13,13 +13,13 @@ const OpCodeServerRequest uint16 = 0x0B
 const OpCodeServerListReRequest uint16 = 0x04
 
 func HandleServerListRequest(l logrus.FieldLogger, ms *session.Model, _ *request.RequestReader) {
-	ws, err := world.GetAll()
+	ws, err := world.GetAll(l)
 	if err != nil {
 		l.WithError(err).Errorf("Retrieving worlds")
 		return
 	}
 
-	cls, err := channel.GetChannelLoadByWorld()
+	cls, err := channel.GetChannelLoadByWorld(l)
 	if err != nil {
 		l.WithError(err).Errorf("Retrieving channel load")
 		return

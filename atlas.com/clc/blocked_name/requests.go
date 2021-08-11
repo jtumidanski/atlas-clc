@@ -3,6 +3,7 @@ package blocked_name
 import (
 	"atlas-clc/rest/requests"
 	"fmt"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -12,11 +13,13 @@ const (
 	BlockedNamesByName               = BlockedNameResource + "?name=%s"
 )
 
-func requestByName(name string) (*dataContainer, error) {
-	ar := &dataContainer{}
-	err := requests.Get(fmt.Sprintf(BlockedNamesByName, name), ar)
-	if err != nil {
-		return nil, err
+func requestByName(l logrus.FieldLogger) func(name string) (*dataContainer, error) {
+	return func(name string) (*dataContainer, error) {
+		ar := &dataContainer{}
+		err := requests.Get(l)(fmt.Sprintf(BlockedNamesByName, name), ar)
+		if err != nil {
+			return nil, err
+		}
+		return ar, nil
 	}
-	return ar, nil
 }

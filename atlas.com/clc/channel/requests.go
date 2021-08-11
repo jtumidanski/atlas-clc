@@ -3,6 +3,7 @@ package channel
 import (
 	"atlas-clc/rest/requests"
 	"fmt"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -12,20 +13,22 @@ const (
 	ByWorld                = ChannelResource + "?world=%d"
 )
 
-func requestChannels() (*dataContainer, error) {
+func requestChannels(l logrus.FieldLogger) (*dataContainer, error) {
 	r := &dataContainer{}
-	err := requests.Get(ChannelResource, r)
+	err := requests.Get(l)(ChannelResource, r)
 	if err != nil {
 		return nil, err
 	}
 	return r, nil
 }
 
-func requestChannelsForWorld(worldId byte) (*dataContainer, error) {
-	r := &dataContainer{}
-	err := requests.Get(fmt.Sprintf(ByWorld, worldId), r)
-	if err != nil {
-		return nil, err
+func requestChannelsForWorld(l logrus.FieldLogger) func(worldId byte) (*dataContainer, error) {
+	return func(worldId byte) (*dataContainer, error) {
+		r := &dataContainer{}
+		err := requests.Get(l)(fmt.Sprintf(ByWorld, worldId), r)
+		if err != nil {
+			return nil, err
+		}
+		return r, nil
 	}
-	return r, nil
 }

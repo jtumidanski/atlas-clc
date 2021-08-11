@@ -1,11 +1,12 @@
 package world
 
 import (
-   "strconv"
+	"github.com/sirupsen/logrus"
+	"strconv"
 )
 
-func GetAll() ([]Model, error) {
-	r, err := requestWorlds()
+func GetAll(l logrus.FieldLogger) ([]Model, error) {
+	r, err := requestWorlds(l)
 	if err != nil {
 		return nil, err
 	}
@@ -20,13 +21,15 @@ func GetAll() ([]Model, error) {
 	return ws, nil
 }
 
-func GetById(worldId byte) (*Model, error) {
-	r, err := requestWorld(worldId)
-	if err != nil {
-		return nil, err
-	}
+func GetById(l logrus.FieldLogger) func(worldId byte) (*Model, error) {
+	return func(worldId byte) (*Model, error) {
+		r, err := requestWorld(l)(worldId)
+		if err != nil {
+			return nil, err
+		}
 
-	return makeWorld(*r.Data())
+		return makeWorld(*r.Data())
+	}
 }
 
 func makeWorld(data dataBody) (*Model, error) {
@@ -49,10 +52,12 @@ func makeWorld(data dataBody) (*Model, error) {
 	return &w, nil
 }
 
-func GetWorldCapacityStatus(worldId byte) uint16 {
-	w, err := GetById(worldId)
-	if err != nil {
-		return StatusFull
+func GetWorldCapacityStatus(l logrus.FieldLogger) func(worldId byte) uint16 {
+	return func(worldId byte) uint16 {
+		w, err := GetById(l)(worldId)
+		if err != nil {
+			return StatusFull
+		}
+		return w.CapacityStatus()
 	}
-	return w.CapacityStatus()
 }
