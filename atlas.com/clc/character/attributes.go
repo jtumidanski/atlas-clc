@@ -9,7 +9,7 @@ type propertiesDataContainer struct {
 type propertiesDataBody struct {
 	Id         string               `json:"id"`
 	Type       string               `json:"type"`
-	Attributes propertiesAttributes `json:"properties"`
+	Attributes propertiesAttributes `json:"attributes"`
 }
 
 type propertiesAttributes struct {

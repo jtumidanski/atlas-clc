@@ -197,7 +197,6 @@ func (a Properties) Sp() []uint16 {
 
 func (a Properties) RemainingSp() uint16 {
 	return a.Sp()[a.skillBook()]
-
 }
 
 func (a Properties) skillBook() uint16 {
