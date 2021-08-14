@@ -12,25 +12,27 @@ import (
 )
 
 func CreateSocketService(l *logrus.Logger, ctx context.Context, wg *sync.WaitGroup) {
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
 	go func() {
-		wg.Add(1)
-		defer wg.Done()
-		err := socket.Run(l, handlerProducer(l),
-			socket.SetPort(8484),
-			socket.SetSessionCreator(session.Create(l, session.GetRegistry())),
-			socket.SetSessionMessageDecryptor(session.Decrypt(l, session.GetRegistry())),
-			socket.SetSessionDestroyer(session.DestroyById(l, session.GetRegistry())),
-		)
-		if err != nil {
-			l.WithError(err).Errorf("Socket service encountered error")
-		}
-	}()
+		ctx, cancel := context.WithCancel(ctx)
+		defer cancel()
 
-	<-ctx.Done()
-	l.Infof("Shutting down server on port 8484")
+		go func() {
+			wg.Add(1)
+			defer wg.Done()
+			err := socket.Run(l, handlerProducer(l),
+				socket.SetPort(8484),
+				socket.SetSessionCreator(session.Create(l, session.GetRegistry())),
+				socket.SetSessionMessageDecryptor(session.Decrypt(l, session.GetRegistry())),
+				socket.SetSessionDestroyer(session.DestroyById(l, session.GetRegistry())),
+			)
+			if err != nil {
+				l.WithError(err).Errorf("Socket service encountered error")
+			}
+		}()
+
+		<-ctx.Done()
+		l.Infof("Shutting down server on port 8484")
+	}()
 }
 
 func handlerProducer(l logrus.FieldLogger) socket.MessageHandlerProducer {
