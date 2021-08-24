@@ -6,7 +6,7 @@ import (
 )
 
 func GetAll(l logrus.FieldLogger) ([]Model, error) {
-	r, err := requestWorlds(l)
+	r, err := requestWorlds()(l)
 	if err != nil {
 		return nil, err
 	}
@@ -23,7 +23,7 @@ func GetAll(l logrus.FieldLogger) ([]Model, error) {
 
 func GetById(l logrus.FieldLogger) func(worldId byte) (*Model, error) {
 	return func(worldId byte) (*Model, error) {
-		r, err := requestWorld(l)(worldId)
+		r, err := requestWorld(worldId)(l)
 		if err != nil {
 			return nil, err
 		}
@@ -52,7 +52,7 @@ func makeWorld(data dataBody) (*Model, error) {
 	return &w, nil
 }
 
-func GetWorldCapacityStatus(l logrus.FieldLogger) func(worldId byte) uint16 {
+func GetCapacityStatus(l logrus.FieldLogger) func(worldId byte) uint16 {
 	return func(worldId byte) uint16 {
 		w, err := GetById(l)(worldId)
 		if err != nil {

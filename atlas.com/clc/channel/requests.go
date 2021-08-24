@@ -13,22 +13,23 @@ const (
 	ByWorld                = ChannelResource + "?world=%d"
 )
 
-func requestChannels(l logrus.FieldLogger) (*dataContainer, error) {
-	r := &dataContainer{}
-	err := requests.Get(l)(ChannelResource, r)
-	if err != nil {
-		return nil, err
-	}
-	return r, nil
-}
+type Request func(l logrus.FieldLogger) (*dataContainer, error)
 
-func requestChannelsForWorld(l logrus.FieldLogger) func(worldId byte) (*dataContainer, error) {
-	return func(worldId byte) (*dataContainer, error) {
-		r := &dataContainer{}
-		err := requests.Get(l)(fmt.Sprintf(ByWorld, worldId), r)
+func makeRequest(url string) Request {
+	return func(l logrus.FieldLogger) (*dataContainer, error) {
+		ar := &dataContainer{}
+		err := requests.Get(l)(url, ar)
 		if err != nil {
 			return nil, err
 		}
-		return r, nil
+		return ar, nil
 	}
+}
+
+func requestChannels() Request {
+	return makeRequest(ChannelResource)
+}
+
+func requestChannelsForWorld(worldId byte) Request {
+	return makeRequest(fmt.Sprintf(ByWorld, worldId))
 }

@@ -1,55 +1,18 @@
 package character
 
 import (
+	"atlas-clc/character/properties"
 	"atlas-clc/rest/requests"
-	"fmt"
-	"github.com/sirupsen/logrus"
 )
 
 const (
-	CharactersServicePrefix     string = "/ms/cos/"
-	CharactersService                  = requests.BaseRequest + CharactersServicePrefix
-	CharactersResource                 = CharactersService + "characters/"
-	CharactersByName                   = CharactersResource + "?name=%s"
-	CharactersForAccountByWorld        = CharactersResource + "?accountId=%d&worldId=%d"
-	CharactersById                     = CharactersResource + "%d"
-	CharacterSeeds                     = CharactersResource + "seeds"
+	CharactersServicePrefix string = "/ms/cos/"
+	CharactersService              = requests.BaseRequest + CharactersServicePrefix
+	CharactersResource             = CharactersService + "characters/"
+	CharacterSeeds                 = CharactersResource + "seeds"
 )
 
-func requestPropertiesByName(l logrus.FieldLogger) func(name string) (*propertiesDataContainer, error) {
-	return func(name string) (*propertiesDataContainer, error) {
-		ar := &propertiesDataContainer{}
-		err := requests.Get(l)(fmt.Sprintf(CharactersByName, name), ar)
-		if err != nil {
-			return nil, err
-		}
-		return ar, nil
-	}
-}
-
-func requestPropertiesByAccountAndWorld(l logrus.FieldLogger) func(accountId uint32, worldId byte) (*propertiesDataContainer, error) {
-	return func(accountId uint32, worldId byte) (*propertiesDataContainer, error) {
-		ar := &propertiesDataContainer{}
-		err := requests.Get(l)(fmt.Sprintf(CharactersForAccountByWorld, accountId, worldId), ar)
-		if err != nil {
-			return nil, err
-		}
-		return ar, nil
-	}
-}
-
-func requestPropertiesById(l logrus.FieldLogger) func(characterId uint32) (*propertiesDataContainer, error) {
-	return func(characterId uint32) (*propertiesDataContainer, error) {
-		ar := &propertiesDataContainer{}
-		err := requests.Get(l)(fmt.Sprintf(CharactersById, characterId), ar)
-		if err != nil {
-			return nil, err
-		}
-		return ar, nil
-	}
-}
-
-func seedCharacter(accountId uint32, worldId byte, name string, job uint32, face uint32, hair uint32, color uint32, skinColor uint32, gender byte, top uint32, bottom uint32, shoes uint32, weapon uint32) (*propertiesDataBody, error) {
+func seedCharacter(accountId uint32, worldId byte, name string, job uint32, face uint32, hair uint32, color uint32, skinColor uint32, gender byte, top uint32, bottom uint32, shoes uint32, weapon uint32) (*properties.DataBody, error) {
 	i := seedInputDataContainer{
 		Data: seedDataBody{
 			Id:   "0",
@@ -77,7 +40,7 @@ func seedCharacter(accountId uint32, worldId byte, name string, job uint32, face
 		return nil, err
 	}
 
-	ca := &propertiesDataContainer{}
+	ca := &properties.DataContainer{}
 	err = requests.ProcessResponse(r, ca)
 	if err != nil {
 		return nil, err

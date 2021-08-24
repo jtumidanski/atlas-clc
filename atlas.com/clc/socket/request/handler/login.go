@@ -68,14 +68,13 @@ func HandleLoginRequest(l logrus.FieldLogger, ms *session.Model, r *request.Requ
 		return
 	}
 
-	authorizeSuccess(l, ms, p.Name())
+	account.ForAccountByName(l)(p.Name(), issueSuccess(l, ms))
 }
 
-func authorizeSuccess(l logrus.FieldLogger, ms *session.Model, name string) {
-	a, err := account.GetByName(l)(name)
-	if err == nil {
+func issueSuccess(l logrus.FieldLogger, ms *session.Model) account.ModelOperator {
+	return func(a *account.Model) {
 		ms.SetAccountId(a.Id())
-		err = ms.Announce(writer.WriteAuthSuccess(l)(a.Id(), a.Name(), a.Gender(), a.PIC()))
+		err := ms.Announce(writer.WriteAuthSuccess(l)(a.Id(), a.Name(), a.Gender(), a.PIC()))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to show successful authorization for account %d", a.Id())
 		}

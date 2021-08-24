@@ -5,39 +5,58 @@ import (
 	"strconv"
 )
 
-func GetByName(l logrus.FieldLogger) func(name string) (*Model, error) {
-	return func(name string) (*Model, error) {
-		resp, err := requestAccountByName(l)(name)
-		if err != nil {
-			return nil, err
-		}
+type ModelOperator func(*Model)
 
-		d := resp.Data()
-		aid, err := strconv.ParseUint(d.Id, 10, 32)
-		if err != nil {
-			return nil, err
-		}
+type ModelProvider func() (*Model, error)
 
-		a := makeAccount(uint32(aid), d.Attributes)
-		return &a, nil
+type ModelListProvider func() ([]*Model, error)
+
+func requestModelProvider(l logrus.FieldLogger) func(r Request) ModelProvider {
+	return func(r Request) ModelProvider {
+		return func() (*Model, error) {
+			resp, err := r(l)
+			if err != nil {
+				return nil, err
+			}
+
+			p, err := makeModel(resp.Data())
+			if err != nil {
+				return nil, err
+			}
+			return p, nil
+		}
+	}
+}
+
+func For(provider ModelProvider, operator ModelOperator) {
+	m, err := provider()
+	if err != nil {
+		return
+	}
+	operator(m)
+}
+
+func ForAccountByName(l logrus.FieldLogger) func(name string, operator ModelOperator) {
+	return func(name string, operator ModelOperator) {
+		For(ByNameModelProvider(l)(name), operator)
+	}
+}
+
+func ByNameModelProvider(l logrus.FieldLogger) func(name string) ModelProvider {
+	return func(name string) ModelProvider {
+		return requestModelProvider(l)(requestAccountByName(name))
+	}
+}
+
+func ByIdModelProvider(l logrus.FieldLogger) func(id uint32) ModelProvider {
+	return func(id uint32) ModelProvider {
+		return requestModelProvider(l)(requestAccountById(id))
 	}
 }
 
 func GetById(l logrus.FieldLogger) func(id uint32) (*Model, error) {
 	return func(id uint32) (*Model, error) {
-		resp, err := requestAccountById(l)(id)
-		if err != nil {
-			return nil, err
-		}
-
-		d := resp.Data()
-		aid, err := strconv.ParseUint(d.Id, 10, 32)
-		if err != nil {
-			return nil, err
-		}
-
-		a := makeAccount(uint32(aid), d.Attributes)
-		return &a, nil
+		return ByIdModelProvider(l)(id)()
 	}
 }
 
@@ -54,9 +73,14 @@ func IsLoggedIn(l logrus.FieldLogger) func(id uint32) bool {
 	}
 }
 
-func makeAccount(id uint32, att attributes) Model {
-	return NewAccountBuilder().
-		SetId(id).
+func makeModel(body *dataBody) (*Model, error) {
+	id, err := strconv.ParseUint(body.Id, 10, 32)
+	if err != nil {
+		return nil, err
+	}
+	att := body.Attributes
+	m := NewBuilder().
+		SetId(uint32(id)).
 		SetPassword(att.Password).
 		SetPin(att.Pin).
 		SetPic(att.Pic).
@@ -69,4 +93,5 @@ func makeAccount(id uint32, att attributes) Model {
 		SetCountry(att.Country).
 		SetCharacterSlots(att.CharacterSlots).
 		Build()
+	return &m, nil
 }

@@ -6,7 +6,7 @@ import (
 )
 
 func GetAll(l logrus.FieldLogger) ([]Model, error) {
-	r, err := requestChannels(l)
+	r, err := requestChannels()(l)
 	if err != nil {
 		return nil, err
 	}
@@ -17,7 +17,7 @@ func GetAll(l logrus.FieldLogger) ([]Model, error) {
 
 func GetAllForWorld(l logrus.FieldLogger) func(worldId byte) ([]Model, error) {
 	return func(worldId byte) ([]Model, error) {
-		r, err := requestChannelsForWorld(l)(worldId)
+		r, err := requestChannelsForWorld(worldId)(l)
 		if err != nil {
 			return nil, err
 		}
@@ -29,7 +29,7 @@ func GetAllForWorld(l logrus.FieldLogger) func(worldId byte) ([]Model, error) {
 
 func GetForWorldById(l logrus.FieldLogger) func(worldId byte, channelId byte) (*Model, error) {
 	return func(worldId byte, channelId byte) (*Model, error) {
-		r, err := requestChannelsForWorld(l)(worldId)
+		r, err := requestChannelsForWorld(worldId)(l)
 		if err != nil {
 			return nil, err
 		}

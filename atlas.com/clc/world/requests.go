@@ -13,22 +13,23 @@ const (
 	WorldsById            = WorldsResource + "%d"
 )
 
-func requestWorlds(l logrus.FieldLogger) (*dataContainer, error) {
-	r := &dataContainer{}
-	err := requests.Get(l)(WorldsResource, r)
-	if err != nil {
-		return nil, err
-	}
-	return r, nil
-}
+type Request func(l logrus.FieldLogger) (*dataContainer, error)
 
-func requestWorld(l logrus.FieldLogger) func(worldId byte) (*dataContainer, error) {
-	return func(worldId byte) (*dataContainer, error) {
-		r := &dataContainer{}
-		err := requests.Get(l)(fmt.Sprintf(WorldsById, worldId), r)
+func makeRequest(url string) Request {
+	return func(l logrus.FieldLogger) (*dataContainer, error) {
+		ar := &dataContainer{}
+		err := requests.Get(l)(url, ar)
 		if err != nil {
 			return nil, err
 		}
-		return r, nil
+		return ar, nil
 	}
+}
+
+func requestWorlds() Request {
+	return makeRequest(WorldsResource)
+}
+
+func requestWorld(worldId byte) Request {
+	return makeRequest(fmt.Sprintf(WorldsById, worldId))
 }

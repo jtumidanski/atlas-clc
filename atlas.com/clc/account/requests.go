@@ -14,10 +14,12 @@ const (
 	AccountsById                 = AccountsResource + "%d"
 )
 
-func requestAccountByName(l logrus.FieldLogger) func(name string) (*dataContainer, error) {
-	return func(name string) (*dataContainer, error) {
+type Request func(l logrus.FieldLogger) (*dataContainer, error)
+
+func makeRequest(url string) Request {
+	return func(l logrus.FieldLogger) (*dataContainer, error) {
 		ar := &dataContainer{}
-		err := requests.Get(l)(fmt.Sprintf(AccountsByName, name), ar)
+		err := requests.Get(l)(url, ar)
 		if err != nil {
 			return nil, err
 		}
@@ -25,13 +27,10 @@ func requestAccountByName(l logrus.FieldLogger) func(name string) (*dataContaine
 	}
 }
 
-func requestAccountById(l logrus.FieldLogger) func(id uint32) (*dataContainer, error) {
-	return func(id uint32) (*dataContainer, error) {
-		ar := &dataContainer{}
-		err := requests.Get(l)(fmt.Sprintf(AccountsById, id), ar)
-		if err != nil {
-			return nil, err
-		}
-		return ar, nil
-	}
+func requestAccountByName(name string) Request {
+	return makeRequest(fmt.Sprintf(AccountsByName, name))
+}
+
+func requestAccountById(id uint32) Request {
+	return makeRequest(fmt.Sprintf(AccountsById, id))
 }
