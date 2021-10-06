@@ -7,7 +7,10 @@ import (
 	"atlas-clc/session"
 	"atlas-clc/socket"
 	"atlas-clc/tasks"
+	"atlas-clc/tracing"
 	"context"
+	"github.com/opentracing/opentracing-go"
+	"io"
 	"os"
 	"os/signal"
 	"sync"
@@ -15,12 +18,25 @@ import (
 	"time"
 )
 
+const serviceName = "atlas-clc"
+
 func main() {
 	l := logger.CreateLogger()
 	l.Infoln("Starting main service.")
 
 	wg := &sync.WaitGroup{}
 	ctx, cancel := context.WithCancel(context.Background())
+
+	tc, err := tracing.InitTracer(l)(serviceName)
+	if err != nil {
+		l.WithError(err).Fatal("Unable to initialize tracer.")
+	}
+	defer func(tc io.Closer) {
+		err := tc.Close()
+		if err != nil {
+			l.WithError(err).Errorf("Unable to close tracer.")
+		}
+	}(tc)
 
 	config, err := configuration.GetConfiguration()
 	if err != nil {
@@ -31,7 +47,7 @@ func main() {
 
 	rest.CreateRestService(l, ctx, wg)
 
-	go tasks.Register(session.NewTimeout(l, time.Second*time.Duration(config.TimeoutTaskInterval)))
+	go tasks.Register(session.NewTimeout(l, time.Millisecond*time.Duration(config.TimeoutTaskInterval)))
 
 	// trap sigterm or interrupt and gracefully shutdown the server
 	c := make(chan os.Signal, 1)
@@ -43,7 +59,9 @@ func main() {
 	cancel()
 	wg.Wait()
 
-	session.DestroyAll(l, session.GetRegistry())
+	span := opentracing.StartSpan("teardown")
+	defer span.Finish()
+	session.DestroyAll(l, span, session.GetRegistry())
 
 	l.Infoln("Service shutdown.")
 }

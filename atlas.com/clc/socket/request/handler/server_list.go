@@ -6,27 +6,30 @@ import (
 	"atlas-clc/socket/response/writer"
 	"atlas-clc/world"
 	"github.com/jtumidanski/atlas-socket/request"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
 const OpCodeServerRequest uint16 = 0x0B
 const OpCodeServerListReRequest uint16 = 0x04
 
-func HandleServerListRequest(l logrus.FieldLogger, ms *session.Model, _ *request.RequestReader) {
-	ws, err := world.GetAll(l)
-	if err != nil {
-		l.WithError(err).Errorf("Retrieving worlds")
-		return
-	}
+func HandleServerListRequest(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, _ *request.RequestReader) {
+	return func(s *session.Model, _ *request.RequestReader) {
+		ws, err := world.GetAll(l, span)
+		if err != nil {
+			l.WithError(err).Errorf("Retrieving worlds")
+			return
+		}
 
-	cls, err := channel.GetChannelLoadByWorld(l)
-	if err != nil {
-		l.WithError(err).Errorf("Retrieving channel load")
-		return
-	}
+		cls, err := channel.GetChannelLoadByWorld(l, span)
+		if err != nil {
+			l.WithError(err).Errorf("Retrieving channel load")
+			return
+		}
 
-	nws := combine(l, ws, cls)
-	respondToSession(l, ms, nws)
+		nws := combine(l, ws, cls)
+		respondToSession(l, s, nws)
+	}
 }
 
 func combine(l logrus.FieldLogger, ws []world.Model, cls map[int][]channel.Load) []world.Model {

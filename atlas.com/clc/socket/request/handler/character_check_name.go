@@ -5,6 +5,7 @@ import (
 	"atlas-clc/session"
 	"atlas-clc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/request"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -23,19 +24,21 @@ func ReadCharacterCheckNameRequest(reader *request.RequestReader) *CharacterChec
 	return &CharacterCheckNameRequest{name}
 }
 
-func HandleCheckCharacterNameRequest(l logrus.FieldLogger, ms *session.Model, r *request.RequestReader) {
-	p := ReadCharacterCheckNameRequest(r)
+func HandleCheckCharacterNameRequest(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
+	return func(s *session.Model, r *request.RequestReader) {
+		p := ReadCharacterCheckNameRequest(r)
 
-	ok, err := character.IsValidName(l)(p.Name())
-	if err != nil {
-		l.WithError(err).Errorf("Validating character name on creation")
-		err = ms.Announce(writer.WriteCharacterNameCheck(l)(p.Name(), true))
+		ok, err := character.IsValidName(l, span)(p.Name())
 		if err != nil {
-			l.WithError(err).Errorf("Unable to issue character name validation error")
+			l.WithError(err).Errorf("Validating character name on creation")
+			err = s.Announce(writer.WriteCharacterNameCheck(l)(p.Name(), true))
+			if err != nil {
+				l.WithError(err).Errorf("Unable to issue character name validation error")
+			}
 		}
-	}
-	err = ms.Announce(writer.WriteCharacterNameCheck(l)(p.Name(), !ok))
-	if err != nil {
-		l.WithError(err).Errorf("Unable to inform character name validation success")
+		err = s.Announce(writer.WriteCharacterNameCheck(l)(p.Name(), !ok))
+		if err != nil {
+			l.WithError(err).Errorf("Unable to inform character name validation success")
+		}
 	}
 }

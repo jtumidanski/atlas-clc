@@ -2,6 +2,7 @@ package character
 
 import (
 	"atlas-clc/kafka/producers"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -13,8 +14,8 @@ type characterStatusEvent struct {
 	Type        string `json:"type"`
 }
 
-func Logout(l logrus.FieldLogger) func(worldId byte, channelId byte, accountId uint32, characterId uint32) {
-	producer := producers.ProduceEvent(l, "TOPIC_CHARACTER_STATUS")
+func Logout(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, accountId uint32, characterId uint32) {
+	producer := producers.ProduceEvent(l, span, "TOPIC_CHARACTER_STATUS")
 	return func(worldId byte, channelId byte, accountId uint32, characterId uint32) {
 		e := &characterStatusEvent{
 			WorldId:     worldId,

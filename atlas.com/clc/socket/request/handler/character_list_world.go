@@ -7,6 +7,7 @@ import (
 	"atlas-clc/socket/response/writer"
 	"atlas-clc/world"
 	"github.com/jtumidanski/atlas-socket/request"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -33,40 +34,42 @@ func ReadCharacterListWorldRequest(reader *request.RequestReader) *CharacterList
 	}
 }
 
-func HandleCharacterListWorldRequest(l logrus.FieldLogger, ms *session.Model, r *request.RequestReader) {
-	p := ReadCharacterListWorldRequest(r)
+func HandleCharacterListWorldRequest(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
+	return func(s *session.Model, r *request.RequestReader) {
+		p := ReadCharacterListWorldRequest(r)
 
-	w, err := world.GetById(l)(p.WorldId())
-	if err != nil {
-		l.WithError(err).Errorf("Received a character list request for a world we do not have")
-		return
-	}
-
-	if w.CapacityStatus() == world.StatusFull {
-		err = ms.Announce(writer.WriteWorldCapacityStatus(l)(world.StatusFull))
+		w, err := world.GetById(l, span)(p.WorldId())
 		if err != nil {
-			l.WithError(err).Errorf("Unable to show that world %d is full", w.Id())
+			l.WithError(err).Errorf("Received a character list request for a world we do not have")
+			return
 		}
-		return
-	}
 
-	ms.SetWorldId(p.WorldId())
-	ms.SetChannelId(p.ChannelId())
+		if w.CapacityStatus() == world.StatusFull {
+			err = s.Announce(writer.WriteWorldCapacityStatus(l)(world.StatusFull))
+			if err != nil {
+				l.WithError(err).Errorf("Unable to show that world %d is full", w.Id())
+			}
+			return
+		}
 
-	a, err := account.GetById(l)(ms.AccountId())
-	if err != nil {
-		l.WithError(err).Errorf("Cannot retrieve account")
-		return
-	}
+		s.SetWorldId(p.WorldId())
+		s.SetChannelId(p.ChannelId())
 
-	cs, err := character.GetForWorld(l)(ms.AccountId(), p.WorldId())
-	if err != nil {
-		l.WithError(err).Errorf("Cannot retrieve account characters")
-		return
-	}
+		a, err := account.GetById(l, span)(s.AccountId())
+		if err != nil {
+			l.WithError(err).Errorf("Cannot retrieve account")
+			return
+		}
 
-	err = ms.Announce(writer.WriteCharacterList(l)(cs, p.WorldId(), 0, true, a.PIC(), int16(1), a.CharacterSlots()))
-	if err != nil {
-		l.WithError(err).Errorf("Unable to show character list")
+		cs, err := character.GetForWorld(l, span)(s.AccountId(), p.WorldId())
+		if err != nil {
+			l.WithError(err).Errorf("Cannot retrieve account characters")
+			return
+		}
+
+		err = s.Announce(writer.WriteCharacterList(l)(cs, p.WorldId(), 0, true, a.PIC(), int16(1), a.CharacterSlots()))
+		if err != nil {
+			l.WithError(err).Errorf("Unable to show character list")
+		}
 	}
 }

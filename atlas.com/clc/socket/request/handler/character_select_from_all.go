@@ -7,6 +7,7 @@ import (
 	"atlas-clc/socket/response/writer"
 	"atlas-clc/world"
 	"github.com/jtumidanski/atlas-socket/request"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"math/rand"
 	"time"
@@ -37,39 +38,41 @@ func ReadCharacterSelectFromAll(reader *request.RequestReader) *CharacterSelectF
 	return &CharacterSelectFromAllRequest{cid, wid, macs, hwid}
 }
 
-func HandleCharacterSelectFromAllRequest(l logrus.FieldLogger, ms *session.Model, r *request.RequestReader) {
-	p := ReadCharacterSelectFromAll(r)
+func HandleCharacterSelectFromAllRequest(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
+	return func(s *session.Model, r *request.RequestReader) {
+		p := ReadCharacterSelectFromAll(r)
 
-	c, err := character.GetById(l)(uint32(p.CharacterId()))
-	if err != nil {
-		l.WithError(err).Errorf("Unable to retrieve selected character by id")
-		return
-	}
-	if c.Properties().WorldId() != byte(p.WorldId()) {
-		l.Errorf("Client supplied world not matching that of the selected character")
-		return
-	}
-	ms.SetWorldId(c.Properties().WorldId())
+		c, err := character.GetById(l, span)(uint32(p.CharacterId()))
+		if err != nil {
+			l.WithError(err).Errorf("Unable to retrieve selected character by id")
+			return
+		}
+		if c.Properties().WorldId() != byte(p.WorldId()) {
+			l.Errorf("Client supplied world not matching that of the selected character")
+			return
+		}
+		s.SetWorldId(c.Properties().WorldId())
 
-	w, err := world.GetById(l)(ms.WorldId())
-	if err != nil {
-		l.WithError(err).Errorf("Unable to retrieve world logged into by session")
-		return
-	}
-	if w.CapacityStatus() == world.StatusFull {
-		l.Infof("World being logged into is full")
-		//TODO disconnect
-		return
-	}
+		w, err := world.GetById(l, span)(s.WorldId())
+		if err != nil {
+			l.WithError(err).Errorf("Unable to retrieve world logged into by session")
+			return
+		}
+		if w.CapacityStatus() == world.StatusFull {
+			l.Infof("World being logged into is full")
+			//TODO disconnect
+			return
+		}
 
-	cs, err := channel.GetAllForWorld(l)(ms.WorldId())
-	// initialize global pseudo random generator
-	rand.Seed(time.Now().Unix())
-	ch := cs[rand.Intn(len(cs))]
-	ms.SetChannelId(ch.ChannelId())
+		cs, err := channel.GetAllForWorld(l, span)(s.WorldId())
+		// initialize global pseudo random generator
+		rand.Seed(time.Now().Unix())
+		ch := cs[rand.Intn(len(cs))]
+		s.SetChannelId(ch.ChannelId())
 
-	err = ms.Announce(writer.WriteServerIp(l)(ch.IpAddress(), ch.Port(), c.Properties().Id()))
-	if err != nil {
-		l.WithError(err).Errorf("Unable to send channel server connection information")
+		err = s.Announce(writer.WriteServerIp(l)(ch.IpAddress(), ch.Port(), c.Properties().Id()))
+		if err != nil {
+			l.WithError(err).Errorf("Unable to send channel server connection information")
+		}
 	}
 }

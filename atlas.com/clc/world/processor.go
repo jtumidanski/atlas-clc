@@ -1,12 +1,13 @@
 package world
 
 import (
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"strconv"
 )
 
-func GetAll(l logrus.FieldLogger) ([]Model, error) {
-	r, err := requestWorlds()(l)
+func GetAll(l logrus.FieldLogger, span opentracing.Span) ([]Model, error) {
+	r, err := requestWorlds()(l, span)
 	if err != nil {
 		return nil, err
 	}
@@ -21,9 +22,9 @@ func GetAll(l logrus.FieldLogger) ([]Model, error) {
 	return ws, nil
 }
 
-func GetById(l logrus.FieldLogger) func(worldId byte) (*Model, error) {
+func GetById(l logrus.FieldLogger, span opentracing.Span) func(worldId byte) (*Model, error) {
 	return func(worldId byte) (*Model, error) {
-		r, err := requestWorld(worldId)(l)
+		r, err := requestWorld(worldId)(l, span)
 		if err != nil {
 			return nil, err
 		}
@@ -52,9 +53,9 @@ func makeWorld(data dataBody) (*Model, error) {
 	return &w, nil
 }
 
-func GetCapacityStatus(l logrus.FieldLogger) func(worldId byte) uint16 {
+func GetCapacityStatus(l logrus.FieldLogger, span opentracing.Span) func(worldId byte) uint16 {
 	return func(worldId byte) uint16 {
-		w, err := GetById(l)(worldId)
+		w, err := GetById(l, span)(worldId)
 		if err != nil {
 			return StatusFull
 		}

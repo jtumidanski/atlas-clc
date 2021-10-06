@@ -5,6 +5,7 @@ import (
 	"atlas-clc/socket/response/writer"
 	"atlas-clc/world"
 	"github.com/jtumidanski/atlas-socket/request"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -23,12 +24,13 @@ func ReadServerStatusRequest(reader *request.RequestReader) *ServerStatusRequest
 	return &ServerStatusRequest{wid}
 }
 
-func HandleServerStatusRequest(l logrus.FieldLogger, ms *session.Model, r *request.RequestReader) {
-	p := ReadServerStatusRequest(r)
-
-	cs := world.GetCapacityStatus(l)(p.WorldId())
-	err := ms.Announce(writer.WriteWorldCapacityStatus(l)(cs))
-	if err != nil {
-		l.WithError(err).Errorf("Unable to issue world capacity status information")
+func HandleServerStatusRequest(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
+	return func(s *session.Model, r *request.RequestReader) {
+		p := ReadServerStatusRequest(r)
+		cs := world.GetCapacityStatus(l, span)(p.WorldId())
+		err := s.Announce(writer.WriteWorldCapacityStatus(l)(cs))
+		if err != nil {
+			l.WithError(err).Errorf("Unable to issue world capacity status information")
+		}
 	}
 }

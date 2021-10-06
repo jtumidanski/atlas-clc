@@ -1,10 +1,13 @@
 package inventory
 
-import "github.com/sirupsen/logrus"
+import (
+	"github.com/opentracing/opentracing-go"
+	"github.com/sirupsen/logrus"
+)
 
-func GetEquippedItemsForCharacter(l logrus.FieldLogger) func(characterId uint32) ([]EquippedItem, error) {
+func GetEquippedItemsForCharacter(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) ([]EquippedItem, error) {
 	return func(characterId uint32) ([]EquippedItem, error) {
-		r, err := requestEquippedItemsForCharacter(l)(characterId)
+		r, err := requestEquippedItemsForCharacter(l, span)(characterId)
 		if err != nil {
 			return nil, err
 		}

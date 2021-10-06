@@ -2,9 +2,12 @@ package session
 
 import (
 	"atlas-clc/configuration"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"time"
 )
+
+const TimeoutTask = "timeout_task"
 
 type Timeout struct {
 	l        logrus.FieldLogger
@@ -27,15 +30,18 @@ func NewTimeout(l logrus.FieldLogger, interval time.Duration) *Timeout {
 }
 
 func (t *Timeout) Run() {
+	span := opentracing.StartSpan(TimeoutTask)
 	sessions := GetRegistry().GetAll()
 	cur := time.Now()
 
+	t.l.Debugf("Executing timeout task.")
 	for _, s := range sessions {
 		if cur.Sub(s.LastRequest()) > t.timeout {
 			t.l.Infof("Account [%d] was auto-disconnected due to inactivity.", s.AccountId())
-			DestroyById(t.l, GetRegistry())(s.SessionId())
+			DestroyById(t.l, span, GetRegistry())(s.SessionId())
 		}
 	}
+	span.Finish()
 }
 
 func (t *Timeout) SleepTime() time.Duration {

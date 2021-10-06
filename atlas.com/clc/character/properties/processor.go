@@ -2,13 +2,14 @@ package properties
 
 import (
 	"errors"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"strconv"
 )
 
-func GetByName(l logrus.FieldLogger) func(name string) (*Model, error) {
+func GetByName(l logrus.FieldLogger, span opentracing.Span) func(name string) (*Model, error) {
 	return func(name string) (*Model, error) {
-		ca, err := requestPropertiesByName(name)(l)
+		ca, err := requestPropertiesByName(name)(l, span)
 		if err != nil {
 			return nil, err
 		}
@@ -20,9 +21,9 @@ func GetByName(l logrus.FieldLogger) func(name string) (*Model, error) {
 	}
 }
 
-func GetForWorld(l logrus.FieldLogger) func(accountId uint32, worldId byte) ([]Model, error) {
+func GetForWorld(l logrus.FieldLogger, span opentracing.Span) func(accountId uint32, worldId byte) ([]Model, error) {
 	return func(accountId uint32, worldId byte) ([]Model, error) {
-		cs, err := requestPropertiesByAccountAndWorld(accountId, worldId)(l)
+		cs, err := requestPropertiesByAccountAndWorld(accountId, worldId)(l, span)
 		if err != nil {
 			return nil, err
 		}
@@ -39,9 +40,9 @@ func GetForWorld(l logrus.FieldLogger) func(accountId uint32, worldId byte) ([]M
 	}
 }
 
-func GetById(l logrus.FieldLogger) func(characterId uint32) (*Model, error) {
+func GetById(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) (*Model, error) {
 	return func(characterId uint32) (*Model, error) {
-		cs, err := requestPropertiesById(characterId)(l)
+		cs, err := requestPropertiesById(characterId)(l, span)
 		if err != nil {
 			return nil, err
 		}

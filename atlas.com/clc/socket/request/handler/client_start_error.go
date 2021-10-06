@@ -3,6 +3,7 @@ package handler
 import (
 	"atlas-clc/session"
 	"github.com/jtumidanski/atlas-socket/request"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -21,7 +22,9 @@ func ReadClientStartErrorRequest(reader *request.RequestReader) *ClientStartErro
 	return &ClientStartErrorRequest{message}
 }
 
-func HandleClientStartErrorRequest(l logrus.FieldLogger, ms *session.Model, r *request.RequestReader) {
-	p := ReadClientStartErrorRequest(r)
-	l.Errorf("Client start error for %d. Received %s", ms.SessionId(), p.Error())
+func HandleClientStartErrorRequest(l logrus.FieldLogger, _ opentracing.Span) func(s *session.Model, r *request.RequestReader) {
+	return func(s *session.Model, r *request.RequestReader) {
+		p := ReadClientStartErrorRequest(r)
+		l.Errorf("Client start error for %d. Received %s", s.SessionId(), p.Error())
+	}
 }

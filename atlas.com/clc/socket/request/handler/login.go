@@ -8,6 +8,7 @@ import (
 	"atlas-clc/session"
 	"atlas-clc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/request"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
@@ -41,34 +42,35 @@ func ReadLoginRequest(reader *request.RequestReader) *LoginRequest {
 	}
 }
 
-func HandleLoginRequest(l logrus.FieldLogger, ms *session.Model, r *request.RequestReader) {
-	p := ReadLoginRequest(r)
-
-	ip := ms.GetRemoteAddress().String()
-	resp, err := login.CreateLogin(ms.SessionId(), p.Name(), p.Password(), ip)
-	if err != nil {
-		announceSystemError(l, ms)
-		return
-	}
-
-	if resp.StatusCode != http.StatusNoContent {
-		eb := &resources.ErrorListDataContainer{}
-		err = requests.ProcessErrorResponse(resp, eb)
+func HandleLoginRequest(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
+	return func(s *session.Model, r *request.RequestReader) {
+		p := ReadLoginRequest(r)
+		ip := s.GetRemoteAddress().String()
+		resp, err := login.CreateLogin(l, span)(s.SessionId(), p.Name(), p.Password(), ip)
 		if err != nil {
-			announceSystemError(l, ms)
+			announceError(l, span)(s, SystemError)
 			return
 		}
 
-		if len(eb.Errors) > 0 {
-			processFirstError(l, ms, eb.Errors[0])
+		if resp.StatusCode != http.StatusNoContent {
+			eb := &resources.ErrorListDataContainer{}
+			err = requests.ProcessErrorResponse(resp, eb)
+			if err != nil {
+				announceError(l, span)(s, SystemError)
+				return
+			}
+
+			if len(eb.Errors) > 0 {
+				processFirstError(l, span)(s, eb.Errors[0])
+				return
+			}
+
+			announceError(l, span)(s, SystemError)
 			return
 		}
 
-		announceSystemError(l, ms)
-		return
+		account.ForAccountByName(l, span)(p.Name(), issueSuccess(l, s))
 	}
-
-	account.ForAccountByName(l)(p.Name(), issueSuccess(l, ms))
 }
 
 func issueSuccess(l logrus.FieldLogger, ms *session.Model) account.ModelOperator {
@@ -81,57 +83,49 @@ func issueSuccess(l logrus.FieldLogger, ms *session.Model) account.ModelOperator
 	}
 }
 
-func announceSystemError(l logrus.FieldLogger, ms *session.Model) {
-	err := ms.Announce(writer.WriteLoginFailed(l)(SystemError))
-	if err != nil {
-		l.WithError(err).Errorf("Unable to identify that login has failed")
+func announceError(l logrus.FieldLogger, _ opentracing.Span) func(s *session.Model, reason byte) {
+	return func(s *session.Model, reason byte) {
+		err := s.Announce(writer.WriteLoginFailed(l)(reason))
+		if err != nil {
+			l.WithError(err).WithField("reason", reason).Errorf("Unable to identify to character that login has failed.")
+		}
 	}
 }
 
-func processFirstError(l logrus.FieldLogger, ms *session.Model, data resources.ErrorData) {
-	r := GetLoginFailedReason(data.Code)
-	if r == DeletedOrBlocked {
-		if data.Detail == "" {
-			err := ms.Announce(writer.WriteLoginFailed(l)(DeletedOrBlocked))
-			if err != nil {
-				l.WithError(err).Errorf("Unable to issue login failed due to account being deleted or blocked")
+func processFirstError(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, data resources.ErrorData) {
+	return func(s *session.Model, data resources.ErrorData) {
+		r := GetLoginFailedReason(data.Code)
+		if r == DeletedOrBlocked {
+			if data.Detail == "" {
+				announceError(l, span)(s, DeletedOrBlocked)
+				return
 			}
-			return
-		}
 
-		reason := data.Meta["reason"]
-		rc, err := strconv.ParseUint(reason, 10, 8)
-		if err != nil {
-			err = ms.Announce(writer.WriteLoginFailed(l)(SystemError))
+			reason := data.Meta["reason"]
+			rc, err := strconv.ParseUint(reason, 10, 8)
 			if err != nil {
-				l.WithError(err).Errorf("Unable to issue login failed due to system error")
+				announceError(l, span)(s, SystemError)
+				return
 			}
-			return
-		}
 
-		if tb, ok := data.Meta["tempBan"]; ok {
-			until, err := strconv.ParseUint(tb, 10, 64)
-			if err != nil {
-				err = ms.Announce(writer.WriteLoginFailed(l)(SystemError))
+			if tb, ok := data.Meta["tempBan"]; ok {
+				until, err := strconv.ParseUint(tb, 10, 64)
 				if err != nil {
-					l.WithError(err).Errorf("Unable to issue login failed due to system error")
+					announceError(l, span)(s, SystemError)
+					return
+				}
+				err = s.Announce(writer.WriteTemporaryBan(l)(until, byte(rc)))
+				if err != nil {
+					l.WithError(err).Errorf("Unable to issue login failed due to temporary ban")
 				}
 				return
 			}
-			err = ms.Announce(writer.WriteTemporaryBan(l)(until, byte(rc)))
+			err = s.Announce(writer.WritePermanentBan(l))
 			if err != nil {
-				l.WithError(err).Errorf("Unable to issue login failed due to temporary ban")
+				l.WithError(err).Errorf("Unable to issue login failed due to permanent ban")
 			}
 			return
 		}
-		err = ms.Announce(writer.WritePermanentBan(l))
-		if err != nil {
-			l.WithError(err).Errorf("Unable to issue login failed due to permanent ban")
-		}
-		return
-	}
-	err := ms.Announce(writer.WriteLoginFailed(l)(r))
-	if err != nil {
-		l.WithError(err).Errorf("Unable to issue login failed due to reason %d", r)
+		announceError(l, span)(s, r)
 	}
 }

@@ -2,11 +2,12 @@ package channel
 
 import (
 	"errors"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
-func GetAll(l logrus.FieldLogger) ([]Model, error) {
-	r, err := requestChannels()(l)
+func GetAll(l logrus.FieldLogger, span opentracing.Span) ([]Model, error) {
+	r, err := requestChannels()(l, span)
 	if err != nil {
 		return nil, err
 	}
@@ -15,9 +16,9 @@ func GetAll(l logrus.FieldLogger) ([]Model, error) {
 	return cs, nil
 }
 
-func GetAllForWorld(l logrus.FieldLogger) func(worldId byte) ([]Model, error) {
+func GetAllForWorld(l logrus.FieldLogger, span opentracing.Span) func(worldId byte) ([]Model, error) {
 	return func(worldId byte) ([]Model, error) {
-		r, err := requestChannelsForWorld(worldId)(l)
+		r, err := requestChannelsForWorld(worldId)(l, span)
 		if err != nil {
 			return nil, err
 		}
@@ -27,9 +28,9 @@ func GetAllForWorld(l logrus.FieldLogger) func(worldId byte) ([]Model, error) {
 	}
 }
 
-func GetForWorldById(l logrus.FieldLogger) func(worldId byte, channelId byte) (*Model, error) {
+func GetForWorldById(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte) (*Model, error) {
 	return func(worldId byte, channelId byte) (*Model, error) {
-		r, err := requestChannelsForWorld(worldId)(l)
+		r, err := requestChannelsForWorld(worldId)(l, span)
 		if err != nil {
 			return nil, err
 		}
@@ -44,8 +45,8 @@ func GetForWorldById(l logrus.FieldLogger) func(worldId byte, channelId byte) (*
 	}
 }
 
-func GetChannelLoadByWorld(l logrus.FieldLogger) (map[int][]Load, error) {
-	cs, err := GetAll(l)
+func GetChannelLoadByWorld(l logrus.FieldLogger, span opentracing.Span) (map[int][]Load, error) {
+	cs, err := GetAll(l, span)
 	if err != nil {
 		return nil, err
 	}

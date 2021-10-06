@@ -3,6 +3,7 @@ package inventory
 import (
 	"atlas-clc/rest/requests"
 	"fmt"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -14,10 +15,10 @@ const (
 	CharacterEquippedItems             = CharactersInventoryResource + "?type=equip&include=inventoryItems,equipmentStatistics"
 )
 
-func requestEquippedItemsForCharacter(l logrus.FieldLogger) func(characterId uint32) (*dataContainer, error) {
+func requestEquippedItemsForCharacter(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) (*dataContainer, error) {
 	return func(characterId uint32) (*dataContainer, error) {
 		ar := &dataContainer{}
-		err := requests.Get(l)(fmt.Sprintf(CharacterEquippedItems, characterId), ar)
+		err := requests.Get(l, span)(fmt.Sprintf(CharacterEquippedItems, characterId), ar)
 		if err != nil {
 			return nil, err
 		}

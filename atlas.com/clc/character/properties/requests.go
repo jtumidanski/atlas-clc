@@ -3,6 +3,7 @@ package properties
 import (
 	"atlas-clc/rest/requests"
 	"fmt"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -15,12 +16,12 @@ const (
 	CharactersById                     = CharactersResource + "%d"
 )
 
-type Request func(l logrus.FieldLogger) (*DataContainer, error)
+type Request func(l logrus.FieldLogger, span opentracing.Span) (*DataContainer, error)
 
 func makeRequest(url string) Request {
-	return func(l logrus.FieldLogger) (*DataContainer, error) {
+	return func(l logrus.FieldLogger, span opentracing.Span) (*DataContainer, error) {
 		ar := &DataContainer{}
-		err := requests.Get(l)(url, ar)
+		err := requests.Get(l, span)(url, ar)
 		if err != nil {
 			return nil, err
 		}

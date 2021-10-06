@@ -5,6 +5,7 @@ import (
 	"atlas-clc/session"
 	"atlas-clc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/request"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -95,23 +96,25 @@ func ReadCharacterCreateRequest(reader *request.RequestReader) *CharacterCreateR
 	}
 }
 
-func HandleCreateCharacterRequest(l logrus.FieldLogger, ms *session.Model, r *request.RequestReader) {
-	p := ReadCharacterCreateRequest(r)
+func HandleCreateCharacterRequest(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
+	return func(s *session.Model, r *request.RequestReader) {
+		p := ReadCharacterCreateRequest(r)
 
-	ca, err := character.SeedCharacter(ms.AccountId(), ms.WorldId(), p.Name(), p.Job(), p.Face(), p.Hair(), p.HairColor(), p.SkinColor(), p.Gender(), p.Top(), p.Bottom(), p.Shoes(), p.Weapon())
-	if err != nil {
-		l.WithError(err).Errorf("While seeding character")
-		return
-	}
+		ca, err := character.SeedCharacter(l, span)(s.AccountId(), s.WorldId(), p.Name(), p.Job(), p.Face(), p.Hair(), p.HairColor(), p.SkinColor(), p.Gender(), p.Top(), p.Bottom(), p.Shoes(), p.Weapon())
+		if err != nil {
+			l.WithError(err).Errorf("While seeding character")
+			return
+		}
 
-	c, err := character.GetById(l)(ca.Id())
-	if err != nil {
-		l.WithError(err).Errorf("Retrieving newly seeded character")
-		return
-	}
+		c, err := character.GetById(l, span)(ca.Id())
+		if err != nil {
+			l.WithError(err).Errorf("Retrieving newly seeded character")
+			return
+		}
 
-	err = ms.Announce(writer.WriteCharacterViewAddNew(l)(*c))
-	if err != nil {
-		l.WithError(err).Errorf("Unable to return to the character view, with the newly created character")
+		err = s.Announce(writer.WriteCharacterViewAddNew(l)(*c))
+		if err != nil {
+			l.WithError(err).Errorf("Unable to return to the character view, with the newly created character")
+		}
 	}
 }
