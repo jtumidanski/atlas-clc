@@ -45,7 +45,7 @@ func main() {
 
 	socket.CreateSocketService(l, ctx, wg)
 
-	rest.CreateRestService(l, ctx, wg)
+	rest.CreateService(l, ctx, wg, "/ms/clc", session.InitResource)
 
 	go tasks.Register(session.NewTimeout(l, time.Millisecond*time.Duration(config.TimeoutTaskInterval)))
 
