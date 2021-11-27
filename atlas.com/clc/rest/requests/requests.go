@@ -74,7 +74,7 @@ func Post(l logrus.FieldLogger, span opentracing.Span) func(url string, input in
 			return nil, err
 		}
 
-		req, err := http.NewRequest("POST", url, bytes.NewReader(jsonReq))
+		req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(jsonReq))
 		if err != nil {
 			return nil, err
 		}

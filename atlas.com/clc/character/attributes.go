@@ -7,7 +7,7 @@ type seedInputDataContainer struct {
 type seedDataBody struct {
 	Id         string         `json:"id"`
 	Type       string         `json:"type"`
-	Attributes seedAttributes `json:"properties"`
+	Attributes seedAttributes `json:"attributes"`
 }
 
 type seedAttributes struct {
