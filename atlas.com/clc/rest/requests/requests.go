@@ -62,7 +62,7 @@ func Get(l logrus.FieldLogger, span opentracing.Span) func(url string, resp inte
 			l.WithError(err).Errorf("Unable to successfully call GET on %s.", url)
 			return err
 		}
-		err = ProcessResponse(r, resp)
+		err = processResponse(r, resp)
 		return err
 	}
 }
@@ -104,7 +104,7 @@ func Post(l logrus.FieldLogger, span opentracing.Span) func(url string, input in
 		}
 
 		if r.StatusCode != http.StatusNoContent && r.StatusCode != http.StatusOK && r.StatusCode != http.StatusAccepted {
-			err = ProcessErrorResponse(r, errResp)
+			err = processErrorResponse(r, errResp)
 			if err != nil {
 				return err
 			}
@@ -115,7 +115,7 @@ func Post(l logrus.FieldLogger, span opentracing.Span) func(url string, input in
 		}
 
 		if r.ContentLength > 0 {
-			err = ProcessResponse(r, resp)
+			err = processResponse(r, resp)
 			if err != nil {
 				return err
 			}
@@ -128,7 +128,7 @@ func Post(l logrus.FieldLogger, span opentracing.Span) func(url string, input in
 	}
 }
 
-func ProcessResponse(r *http.Response, rb interface{}) error {
+func processResponse(r *http.Response, rb interface{}) error {
 	err := json2.FromJSON(rb, r.Body)
 	if err != nil {
 		return err
@@ -137,7 +137,7 @@ func ProcessResponse(r *http.Response, rb interface{}) error {
 	return nil
 }
 
-func ProcessErrorResponse(r *http.Response, eb interface{}) error {
+func processErrorResponse(r *http.Response, eb interface{}) error {
 	if r.ContentLength > 0 {
 		err := json2.FromJSON(eb, r.Body)
 		if err != nil {
