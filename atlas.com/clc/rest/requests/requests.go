@@ -63,6 +63,9 @@ func Get(l logrus.FieldLogger, span opentracing.Span) func(url string, resp inte
 			return err
 		}
 		err = processResponse(r, resp)
+
+		l.WithFields(logrus.Fields{"method": http.MethodGet, "status": r.Status, "path": url, "response": resp}).Debugf("Printing request.")
+
 		return err
 	}
 }
