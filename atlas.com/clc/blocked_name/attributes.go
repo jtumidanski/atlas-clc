@@ -1,9 +1,13 @@
 package blocked_name
 
-import "atlas-clc/rest/response"
+import (
+	"atlas-clc/rest/response"
+	"encoding/json"
+)
 
 type dataContainer struct {
-	data response.DataSegment
+	data     response.DataSegment
+	included response.DataSegment
 }
 
 type dataBody struct {
@@ -16,26 +20,39 @@ type attributes struct {
 	Name string `json:"name"`
 }
 
-func (b *dataContainer) UnmarshalJSON(data []byte) error {
+func (c *dataContainer) MarshalJSON() ([]byte, error) {
+	t := struct {
+		Data     interface{} `json:"data"`
+		Included interface{} `json:"included"`
+	}{}
+	if len(c.data) == 1 {
+		t.Data = c.data[0]
+	} else {
+		t.Data = c.data
+	}
+	return json.Marshal(t)
+}
+
+func (c *dataContainer) UnmarshalJSON(data []byte) error {
 	d, _, err := response.UnmarshalRoot(data, response.MapperFunc(EmptyBlockedNameData))
 	if err != nil {
 		return err
 	}
 
-	b.data = d
+	c.data = d
 	return nil
 }
 
-func (b *dataContainer) Data() *dataBody {
-	if len(b.data) >= 1 {
-		return b.data[0].(*dataBody)
+func (c *dataContainer) Data() *dataBody {
+	if len(c.data) >= 1 {
+		return c.data[0].(*dataBody)
 	}
 	return nil
 }
 
-func (b *dataContainer) DataList() []dataBody {
+func (c *dataContainer) DataList() []dataBody {
 	var r = make([]dataBody, 0)
-	for _, x := range b.data {
+	for _, x := range c.data {
 		r = append(r, *x.(*dataBody))
 	}
 	return r

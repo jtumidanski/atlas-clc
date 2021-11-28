@@ -1,9 +1,13 @@
 package channel
 
-import "atlas-clc/rest/response"
+import (
+	"atlas-clc/rest/response"
+	"encoding/json"
+)
 
 type dataContainer struct {
-	data response.DataSegment
+	data     response.DataSegment
+	included response.DataSegment
 }
 
 type dataBody struct {
@@ -18,6 +22,19 @@ type attributes struct {
 	Capacity  int    `json:"capacity"`
 	IpAddress string `json:"ipAddress"`
 	Port      uint16 `json:"port"`
+}
+
+func (c *dataContainer) MarshalJSON() ([]byte, error) {
+	t := struct {
+		Data     interface{} `json:"data"`
+		Included interface{} `json:"included"`
+	}{}
+	if len(c.data) == 1 {
+		t.Data = c.data[0]
+	} else {
+		t.Data = c.data
+	}
+	return json.Marshal(t)
 }
 
 func (c *dataContainer) UnmarshalJSON(data []byte) error {

@@ -3,6 +3,7 @@ package inventory
 import (
 	"atlas-clc/inventory/equipment"
 	"atlas-clc/rest/response"
+	"encoding/json"
 	"strconv"
 )
 
@@ -30,6 +31,19 @@ type dataBody struct {
 type attributes struct {
 	Type     string `json:"type"`
 	Capacity int    `json:"capacity"`
+}
+
+func (c *dataContainer) MarshalJSON() ([]byte, error) {
+	t := struct {
+		Data     interface{} `json:"data"`
+		Included interface{} `json:"included"`
+	}{}
+	if len(c.data) == 1 {
+		t.Data = c.data[0]
+	} else {
+		t.Data = c.data
+	}
+	return json.Marshal(t)
 }
 
 func (c *dataContainer) UnmarshalJSON(data []byte) error {
