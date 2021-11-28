@@ -38,16 +38,13 @@ func seedCharacter(l logrus.FieldLogger, span opentracing.Span) func(accountId u
 			},
 		}
 
-		r, err := requests.Post(l, span)(CharacterSeeds, i)
-		if err != nil {
-			return nil, err
-		}
+		resp := &properties.DataContainer{}
+		errResp := &requests.ErrorListDataContainer{}
 
-		ca := &properties.DataContainer{}
-		err = requests.ProcessResponse(r, ca)
+		err := requests.Post(l, span)(CharacterSeeds, i, resp, errResp)
 		if err != nil {
 			return nil, err
 		}
-		return ca.Data(), nil
+		return resp.Data(), nil
 	}
 }

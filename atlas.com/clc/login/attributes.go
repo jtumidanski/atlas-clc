@@ -4,6 +4,10 @@ type inputDataContainer struct {
 	Data dataBody `json:"data"`
 }
 
+type dataContainer struct {
+	Data dataBody `json:"data"`
+}
+
 type dataBody struct {
 	Id         string     `json:"id"`
 	Type       string     `json:"type"`

@@ -4,13 +4,11 @@ import (
 	"atlas-clc/account"
 	"atlas-clc/login"
 	"atlas-clc/rest/requests"
-	"atlas-clc/rest/resources"
 	"atlas-clc/session"
 	"atlas-clc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
-	"net/http"
 	"strconv"
 )
 
@@ -46,26 +44,14 @@ func HandleLoginRequest(l logrus.FieldLogger, span opentracing.Span) func(s *ses
 	return func(s *session.Model, r *request.RequestReader) {
 		p := ReadLoginRequest(r)
 		ip := s.GetRemoteAddress().String()
-		resp, err := login.CreateLogin(l, span)(s.SessionId(), p.Name(), p.Password(), ip)
+		respErr, err := login.CreateLogin(l, span)(s.SessionId(), p.Name(), p.Password(), ip)
 		if err != nil {
 			announceError(l, span)(s, SystemError)
 			return
 		}
 
-		if resp.StatusCode != http.StatusNoContent {
-			eb := &resources.ErrorListDataContainer{}
-			err = requests.ProcessErrorResponse(resp, eb)
-			if err != nil {
-				announceError(l, span)(s, SystemError)
-				return
-			}
-
-			if len(eb.Errors) > 0 {
-				processFirstError(l, span)(s, eb.Errors[0])
-				return
-			}
-
-			announceError(l, span)(s, SystemError)
+		if len(respErr.Errors) > 0 {
+			processFirstError(l, span)(s, respErr.Errors[0])
 			return
 		}
 
@@ -92,8 +78,8 @@ func announceError(l logrus.FieldLogger, _ opentracing.Span) func(s *session.Mod
 	}
 }
 
-func processFirstError(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, data resources.ErrorData) {
-	return func(s *session.Model, data resources.ErrorData) {
+func processFirstError(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, data requests.ErrorData) {
+	return func(s *session.Model, data requests.ErrorData) {
 		r := GetLoginFailedReason(data.Code)
 		if r == DeletedOrBlocked {
 			if data.Detail == "" {
