@@ -1,6 +1,7 @@
 package channel
 
 import (
+	"atlas-clc/rest/requests"
 	"errors"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
@@ -63,7 +64,7 @@ func GetChannelLoadByWorld(l logrus.FieldLogger, span opentracing.Span) (map[int
 	return cls, nil
 }
 
-func makeChannelList(d []dataBody) []Model {
+func makeChannelList(d []requests.DataBody[attributes]) []Model {
 	var cs = make([]Model, 0)
 	for _, x := range d {
 		c := makeChannel(x)
@@ -72,7 +73,7 @@ func makeChannelList(d []dataBody) []Model {
 	return cs
 }
 
-func makeChannel(data dataBody) Model {
+func makeChannel(data requests.DataBody[attributes]) Model {
 	att := data.Attributes
 	return NewChannelBuilder().
 		SetWorldId(att.WorldId).

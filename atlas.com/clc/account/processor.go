@@ -1,6 +1,7 @@
 package account
 
 import (
+	"atlas-clc/rest/requests"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"strconv"
@@ -12,8 +13,8 @@ type ModelProvider func() (*Model, error)
 
 type ModelListProvider func() ([]*Model, error)
 
-func requestModelProvider(l logrus.FieldLogger, span opentracing.Span) func(r Request) ModelProvider {
-	return func(r Request) ModelProvider {
+func requestModelProvider(l logrus.FieldLogger, span opentracing.Span) func(r requests.Request[attributes]) ModelProvider {
+	return func(r requests.Request[attributes]) ModelProvider {
 		return func() (*Model, error) {
 			resp, err := r(l, span)
 			if err != nil {
@@ -74,7 +75,7 @@ func IsLoggedIn(l logrus.FieldLogger, span opentracing.Span) func(id uint32) boo
 	}
 }
 
-func makeModel(body *dataBody) (*Model, error) {
+func makeModel(body requests.DataBody[attributes]) (*Model, error) {
 	id, err := strconv.ParseUint(body.Id, 10, 32)
 	if err != nil {
 		return nil, err

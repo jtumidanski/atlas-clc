@@ -1,6 +1,7 @@
 package world
 
 import (
+	"atlas-clc/rest/requests"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"strconv"
@@ -29,11 +30,11 @@ func GetById(l logrus.FieldLogger, span opentracing.Span) func(worldId byte) (*M
 			return nil, err
 		}
 
-		return makeWorld(*r.Data())
+		return makeWorld(r.Data())
 	}
 }
 
-func makeWorld(data dataBody) (*Model, error) {
+func makeWorld(data requests.DataBody[attributes]) (*Model, error) {
 	wid, err := strconv.Atoi(data.Id)
 	if err != nil {
 		return nil, err

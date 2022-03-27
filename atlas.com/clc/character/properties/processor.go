@@ -1,6 +1,7 @@
 package properties
 
 import (
+	"atlas-clc/rest/requests"
 	"errors"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
@@ -9,15 +10,15 @@ import (
 
 func GetByName(l logrus.FieldLogger, span opentracing.Span) func(name string) (*Model, error) {
 	return func(name string) (*Model, error) {
-		ca, err := requestPropertiesByName(name)(l, span)
+		dc, err := requestPropertiesByName(name)(l, span)
 		if err != nil {
 			return nil, err
 		}
-		if len(ca.DataList()) <= 0 {
+		if dc.Length() <= 0 {
 			return nil, errors.New("unable to find character by name")
 		}
 
-		return MakeModel(ca.Data())
+		return MakeModel(dc.Data())
 	}
 }
 
@@ -30,7 +31,7 @@ func GetForWorld(l logrus.FieldLogger, span opentracing.Span) func(accountId uin
 
 		var characters = make([]Model, 0)
 		for _, x := range cs.DataList() {
-			c, err := MakeModel(&x)
+			c, err := MakeModel(x)
 			if err != nil {
 				return nil, err
 			}
@@ -50,7 +51,7 @@ func GetById(l logrus.FieldLogger, span opentracing.Span) func(characterId uint3
 	}
 }
 
-func MakeModel(ca *DataBody) (*Model, error) {
+func MakeModel(ca requests.DataBody[Attributes]) (*Model, error) {
 	cid, err := strconv.ParseUint(ca.Id, 10, 32)
 	if err != nil {
 		return nil, err

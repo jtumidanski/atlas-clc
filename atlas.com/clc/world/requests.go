@@ -3,8 +3,6 @@ package world
 import (
 	"atlas-clc/rest/requests"
 	"fmt"
-	"github.com/opentracing/opentracing-go"
-	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -14,23 +12,10 @@ const (
 	WorldsById            = WorldsResource + "%d"
 )
 
-type Request func(l logrus.FieldLogger, span opentracing.Span) (*dataContainer, error)
-
-func makeRequest(url string) Request {
-	return func(l logrus.FieldLogger, span opentracing.Span) (*dataContainer, error) {
-		ar := &dataContainer{}
-		err := requests.Get(l, span)(url, ar)
-		if err != nil {
-			return nil, err
-		}
-		return ar, nil
-	}
+func requestWorlds() requests.Request[attributes] {
+	return requests.MakeGetRequest[attributes](WorldsResource)
 }
 
-func requestWorlds() Request {
-	return makeRequest(WorldsResource)
-}
-
-func requestWorld(worldId byte) Request {
-	return makeRequest(fmt.Sprintf(WorldsById, worldId))
+func requestWorld(worldId byte) requests.Request[attributes] {
+	return requests.MakeGetRequest[attributes](fmt.Sprintf(WorldsById, worldId))
 }

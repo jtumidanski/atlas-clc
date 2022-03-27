@@ -55,9 +55,9 @@ func (w *Writer) WriteByte(val byte) {
 	}
 }
 
-func (w *Writer) WriteByteArray(vals []byte) {
-	for i := 0; i < len(vals); i++ {
-		err := binary.Write(w.o, binary.LittleEndian, vals[i])
+func (w *Writer) WriteByteArray(bytes []byte) {
+	for i := 0; i < len(bytes); i++ {
+		err := binary.Write(w.o, binary.LittleEndian, bytes[i])
 		if err != nil {
 			w.l.WithError(err).Fatal("Writing byte value")
 		}

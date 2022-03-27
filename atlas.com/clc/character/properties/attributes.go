@@ -1,21 +1,5 @@
 package properties
 
-import (
-	"atlas-clc/rest/response"
-	"encoding/json"
-)
-
-type DataContainer struct {
-	data     response.DataSegment
-	included response.DataSegment
-}
-
-type DataBody struct {
-	Id         string     `json:"id"`
-	Type       string     `json:"type"`
-	Attributes Attributes `json:"attributes"`
-}
-
 type Attributes struct {
 	AccountId          int    `json:"accountId"`
 	WorldId            byte   `json:"worldId"`
@@ -47,45 +31,4 @@ type Attributes struct {
 	X                  int    `json:"x"`
 	Y                  int    `json:"y"`
 	Stance             byte   `json:"stance"`
-}
-
-func (c *DataContainer) MarshalJSON() ([]byte, error) {
-	t := struct {
-		Data     interface{} `json:"data"`
-		Included interface{} `json:"included"`
-	}{}
-	if len(c.data) == 1 {
-		t.Data = c.data[0]
-	} else {
-		t.Data = c.data
-	}
-	return json.Marshal(t)
-}
-
-func (c *DataContainer) UnmarshalJSON(data []byte) error {
-	d, _, err := response.UnmarshalRoot(data, response.MapperFunc(EmptyCharacterAttributesData))
-	if err != nil {
-		return err
-	}
-	c.data = d
-	return nil
-}
-
-func (c *DataContainer) Data() *DataBody {
-	if len(c.data) >= 1 {
-		return c.data[0].(*DataBody)
-	}
-	return nil
-}
-
-func (c *DataContainer) DataList() []DataBody {
-	var r = make([]DataBody, 0)
-	for _, x := range c.data {
-		r = append(r, *x.(*DataBody))
-	}
-	return r
-}
-
-func EmptyCharacterAttributesData() interface{} {
-	return &DataBody{}
 }

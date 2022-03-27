@@ -8,14 +8,14 @@ import (
 )
 
 const (
-	CharactersServicePrefix string = "/ms/cos/"
-	CharactersService              = requests.BaseRequest + CharactersServicePrefix
-	CharactersResource             = CharactersService + "characters/"
-	CharacterSeeds                 = CharactersResource + "seeds"
+	ServicePrefix string = "/ms/cos/"
+	Service              = requests.BaseRequest + ServicePrefix
+	Resource             = Service + "characters/"
+	Seeds                = Resource + "seeds"
 )
 
-func seedCharacter(l logrus.FieldLogger, span opentracing.Span) func(accountId uint32, worldId byte, name string, job uint32, face uint32, hair uint32, color uint32, skinColor uint32, gender byte, top uint32, bottom uint32, shoes uint32, weapon uint32) (*properties.DataBody, error) {
-	return func(accountId uint32, worldId byte, name string, job uint32, face uint32, hair uint32, color uint32, skinColor uint32, gender byte, top uint32, bottom uint32, shoes uint32, weapon uint32) (*properties.DataBody, error) {
+func seedCharacter(l logrus.FieldLogger, span opentracing.Span) func(accountId uint32, worldId byte, name string, job uint32, face uint32, hair uint32, color uint32, skinColor uint32, gender byte, top uint32, bottom uint32, shoes uint32, weapon uint32) (requests.DataBody[properties.Attributes], error) {
+	return func(accountId uint32, worldId byte, name string, job uint32, face uint32, hair uint32, color uint32, skinColor uint32, gender byte, top uint32, bottom uint32, shoes uint32, weapon uint32) (requests.DataBody[properties.Attributes], error) {
 		i := seedInputDataContainer{
 			Data: seedDataBody{
 				Id:   "0",
@@ -37,14 +37,7 @@ func seedCharacter(l logrus.FieldLogger, span opentracing.Span) func(accountId u
 				},
 			},
 		}
-
-		resp := &properties.DataContainer{}
-		errResp := &requests.ErrorListDataContainer{}
-
-		err := requests.Post(l, span)(CharacterSeeds, i, resp, errResp)
-		if err != nil {
-			return nil, err
-		}
-		return resp.Data(), nil
+		r, _, err := requests.MakePostRequest[properties.Attributes](Seeds, i)(l, span)
+		return r.Data(), err
 	}
 }

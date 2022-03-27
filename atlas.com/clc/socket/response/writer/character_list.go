@@ -35,7 +35,7 @@ func WriteCharacter(w *response.Writer, character character.Model, viewAll bool)
 		w.WriteByte(0)
 		return
 	}
-	w.WriteByte(1) // world rank enabled (next 4 ints are not sent if disabled) Short??
+	w.WriteByte(1) // world rank enabled (next 4 int are not sent if disabled) Short??
 	w.WriteInt(uint32(character.Properties().Rank()))
 	w.WriteInt(uint32(character.Properties().RankMove()))
 	w.WriteInt(uint32(character.Properties().JobRank()))

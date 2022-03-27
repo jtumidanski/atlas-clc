@@ -7,14 +7,16 @@ import (
 
 func GetByName(l logrus.FieldLogger, span opentracing.Span) func(name string) (string, error) {
 	return func(name string) (string, error) {
-		a, err := requestByName(l, span)(name)
+		dc, err := requestByName(name)(l, span)
 		if err != nil {
 			return "", err
 		}
-		if len(a.DataList()) <= 0 {
+
+		if dc.Length() <= 0 {
 			return "", err
 		}
-		return a.Data().Attributes.Name, nil
+		var a = dc.Data().Attributes
+		return a.Name, nil
 	}
 }
 
