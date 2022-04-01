@@ -8,36 +8,19 @@ import (
 )
 
 func GetAll(l logrus.FieldLogger, span opentracing.Span) ([]Model, error) {
-	r, err := requestWorlds()(l, span)
-	if err != nil {
-		return nil, err
-	}
-
-	var ws = make([]Model, 0)
-	for _, x := range r.DataList() {
-		w, err := makeWorld(x)
-		if err == nil {
-			ws = append(ws, *w)
-		}
-	}
-	return ws, nil
+	return requests.SliceProvider[attributes, Model](l, span)(requestWorlds(), makeWorld)()
 }
 
-func GetById(l logrus.FieldLogger, span opentracing.Span) func(worldId byte) (*Model, error) {
-	return func(worldId byte) (*Model, error) {
-		r, err := requestWorld(worldId)(l, span)
-		if err != nil {
-			return nil, err
-		}
-
-		return makeWorld(r.Data())
+func GetById(l logrus.FieldLogger, span opentracing.Span) func(worldId byte) (Model, error) {
+	return func(worldId byte) (Model, error) {
+		return requests.Provider[attributes, Model](l, span)(requestWorld(worldId), makeWorld)()
 	}
 }
 
-func makeWorld(data requests.DataBody[attributes]) (*Model, error) {
+func makeWorld(data requests.DataBody[attributes]) (Model, error) {
 	wid, err := strconv.Atoi(data.Id)
 	if err != nil {
-		return nil, err
+		return Model{}, err
 	}
 
 	att := data.Attributes
@@ -51,7 +34,7 @@ func makeWorld(data requests.DataBody[attributes]) (*Model, error) {
 		SetRecommendedMessage(att.RecommendedMessage).
 		SetCapacityStatus(att.CapacityStatus).
 		Build()
-	return &w, nil
+	return w, nil
 }
 
 func GetCapacityStatus(l logrus.FieldLogger, span opentracing.Span) func(worldId byte) uint16 {
