@@ -96,8 +96,8 @@ func ReadCharacterCreateRequest(reader *request.RequestReader) *CharacterCreateR
 	}
 }
 
-func HandleCreateCharacterRequest(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func HandleCreateCharacterRequest(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := ReadCharacterCreateRequest(r)
 
 		ca, err := character.SeedCharacter(l, span)(s.AccountId(), s.WorldId(), p.Name(), p.Job(), p.Face(), p.Hair(), p.HairColor(), p.SkinColor(), p.Gender(), p.Top(), p.Bottom(), p.Shoes(), p.Weapon())
@@ -112,7 +112,7 @@ func HandleCreateCharacterRequest(l logrus.FieldLogger, span opentracing.Span) f
 			return
 		}
 
-		err = s.Announce(writer.WriteCharacterViewAddNew(l)(*c))
+		err = session.Announce(writer.WriteCharacterViewAddNew(l)(*c))(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to return to the character view, with the newly created character")
 		}

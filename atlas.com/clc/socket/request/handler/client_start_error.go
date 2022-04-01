@@ -22,8 +22,8 @@ func ReadClientStartErrorRequest(reader *request.RequestReader) *ClientStartErro
 	return &ClientStartErrorRequest{message}
 }
 
-func HandleClientStartErrorRequest(l logrus.FieldLogger, _ opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func HandleClientStartErrorRequest(l logrus.FieldLogger, _ opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := ReadClientStartErrorRequest(r)
 		l.Errorf("Client start error for %d. Received %s", s.SessionId(), p.Error())
 	}

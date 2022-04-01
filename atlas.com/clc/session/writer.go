@@ -1,4 +1,4 @@
-package writer
+package session
 
 import (
 	"atlas-clc/socket/response"

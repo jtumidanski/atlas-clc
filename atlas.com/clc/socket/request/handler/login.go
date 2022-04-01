@@ -3,6 +3,7 @@ package handler
 import (
 	"atlas-clc/account"
 	"atlas-clc/login"
+	"atlas-clc/model"
 	"atlas-clc/rest/requests"
 	"atlas-clc/session"
 	"atlas-clc/socket/response/writer"
@@ -40,8 +41,8 @@ func ReadLoginRequest(reader *request.RequestReader) *LoginRequest {
 	}
 }
 
-func HandleLoginRequest(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func HandleLoginRequest(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := ReadLoginRequest(r)
 		ip := s.GetRemoteAddress().String()
 		respErr, err := login.CreateLogin(l, span)(s.SessionId(), p.Name(), p.Password(), ip)
@@ -59,27 +60,28 @@ func HandleLoginRequest(l logrus.FieldLogger, span opentracing.Span) func(s *ses
 	}
 }
 
-func issueSuccess(l logrus.FieldLogger, ms *session.Model) account.ModelOperator {
-	return func(a *account.Model) {
-		ms.SetAccountId(a.Id())
-		err := ms.Announce(writer.WriteAuthSuccess(l)(a.Id(), a.Name(), a.Gender(), a.PIC()))
+func issueSuccess(l logrus.FieldLogger, ms session.Model) model.Operator[account.Model] {
+	return func(a account.Model) error {
+		ms = session.SetAccountId(a.Id())(ms.SessionId())
+		err := session.Announce(writer.WriteAuthSuccess(l)(a.Id(), a.Name(), a.Gender(), a.PIC()))(ms)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to show successful authorization for account %d", a.Id())
 		}
+		return err
 	}
 }
 
-func announceError(l logrus.FieldLogger, _ opentracing.Span) func(s *session.Model, reason byte) {
-	return func(s *session.Model, reason byte) {
-		err := s.Announce(writer.WriteLoginFailed(l)(reason))
+func announceError(l logrus.FieldLogger, _ opentracing.Span) func(s session.Model, reason byte) {
+	return func(s session.Model, reason byte) {
+		err := session.Announce(writer.WriteLoginFailed(l)(reason))(s)
 		if err != nil {
 			l.WithError(err).WithField("reason", reason).Errorf("Unable to identify to character that login has failed.")
 		}
 	}
 }
 
-func processFirstError(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, data requests.ErrorData) {
-	return func(s *session.Model, data requests.ErrorData) {
+func processFirstError(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, data requests.ErrorData) {
+	return func(s session.Model, data requests.ErrorData) {
 		r := GetLoginFailedReason(data.Code)
 		if r == DeletedOrBlocked {
 			if data.Detail == "" {
@@ -100,13 +102,13 @@ func processFirstError(l logrus.FieldLogger, span opentracing.Span) func(s *sess
 					announceError(l, span)(s, SystemError)
 					return
 				}
-				err = s.Announce(writer.WriteTemporaryBan(l)(until, byte(rc)))
+				err = session.Announce(writer.WriteTemporaryBan(l)(until, byte(rc)))(s)
 				if err != nil {
 					l.WithError(err).Errorf("Unable to issue login failed due to temporary ban")
 				}
 				return
 			}
-			err = s.Announce(writer.WritePermanentBan(l))
+			err = session.Announce(writer.WritePermanentBan(l))(s)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to issue login failed due to permanent ban")
 			}

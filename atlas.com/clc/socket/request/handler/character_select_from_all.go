@@ -9,8 +9,6 @@ import (
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
-	"math/rand"
-	"time"
 )
 
 const OpCodeCharacterSelectFromAll uint16 = 0x0E
@@ -38,8 +36,8 @@ func ReadCharacterSelectFromAll(reader *request.RequestReader) *CharacterSelectF
 	return &CharacterSelectFromAllRequest{cid, wid, macs, hwid}
 }
 
-func HandleCharacterSelectFromAllRequest(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func HandleCharacterSelectFromAllRequest(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := ReadCharacterSelectFromAll(r)
 
 		c, err := character.GetById(l, span)(uint32(p.CharacterId()))
@@ -51,7 +49,7 @@ func HandleCharacterSelectFromAllRequest(l logrus.FieldLogger, span opentracing.
 			l.Errorf("Client supplied world not matching that of the selected character")
 			return
 		}
-		s.SetWorldId(c.Properties().WorldId())
+		s = session.SetWorldId(c.Properties().WorldId())(s.SessionId())
 
 		w, err := world.GetById(l, span)(s.WorldId())
 		if err != nil {
@@ -64,13 +62,15 @@ func HandleCharacterSelectFromAllRequest(l logrus.FieldLogger, span opentracing.
 			return
 		}
 
-		cs, err := channel.GetAllForWorld(l, span)(s.WorldId())
-		// initialize global pseudo random generator
-		rand.Seed(time.Now().Unix())
-		ch := cs[rand.Intn(len(cs))]
-		s.SetChannelId(ch.ChannelId())
+		ch, err := channel.GetRandomChannelForWorld(l, span)(s.WorldId())
+		if err != nil {
+			l.WithError(err).Errorf("Unable to select a random channel for the world %d.", s.WorldId())
+			//TODO disconnect
+			return
+		}
+		s = session.SetChannelId(ch.ChannelId())(s.SessionId())
 
-		err = s.Announce(writer.WriteServerIp(l)(ch.IpAddress(), ch.Port(), c.Properties().Id()))
+		err = session.Announce(writer.WriteServerIp(l)(ch.IpAddress(), ch.Port(), c.Properties().Id()))(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to send channel server connection information")
 		}

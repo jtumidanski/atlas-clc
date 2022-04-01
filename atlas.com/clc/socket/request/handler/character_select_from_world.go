@@ -31,8 +31,8 @@ func ReadCharacterSelectFromWorldRequest(reader *request.RequestReader) *Charact
 	return &CharacterSelectFromWorldRequest{cid, macs, hwid}
 }
 
-func HandleCharacterSelectFromWorldRequest(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func HandleCharacterSelectFromWorldRequest(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := ReadCharacterSelectFromWorldRequest(r)
 
 		c, err := character.GetById(l, span)(uint32(p.CharacterId()))
@@ -58,7 +58,7 @@ func HandleCharacterSelectFromWorldRequest(l logrus.FieldLogger, span opentracin
 			return
 		}
 
-		err = s.Announce(writer.WriteServerIp(l)(ch.IpAddress(), ch.Port(), c.Properties().Id()))
+		err = session.Announce(writer.WriteServerIp(l)(ch.IpAddress(), ch.Port(), c.Properties().Id()))(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to send channel server connection information")
 		}

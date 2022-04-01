@@ -1,63 +1,33 @@
 package account
 
 import (
+	"atlas-clc/model"
 	"atlas-clc/rest/requests"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"strconv"
 )
 
-type ModelOperator func(*Model)
-
-type ModelProvider func() (*Model, error)
-
-type ModelListProvider func() ([]*Model, error)
-
-func requestModelProvider(l logrus.FieldLogger, span opentracing.Span) func(r requests.Request[attributes]) ModelProvider {
-	return func(r requests.Request[attributes]) ModelProvider {
-		return func() (*Model, error) {
-			resp, err := r(l, span)
-			if err != nil {
-				return nil, err
-			}
-
-			p, err := makeModel(resp.Data())
-			if err != nil {
-				return nil, err
-			}
-			return p, nil
-		}
+func ForAccountByName(l logrus.FieldLogger, span opentracing.Span) func(name string, operator model.Operator[Model]) {
+	return func(name string, operator model.Operator[Model]) {
+		model.IfPresent[Model](ByNameModelProvider(l, span)(name), operator)
 	}
 }
 
-func For(provider ModelProvider, operator ModelOperator) {
-	m, err := provider()
-	if err != nil {
-		return
-	}
-	operator(m)
-}
-
-func ForAccountByName(l logrus.FieldLogger, span opentracing.Span) func(name string, operator ModelOperator) {
-	return func(name string, operator ModelOperator) {
-		For(ByNameModelProvider(l, span)(name), operator)
+func ByNameModelProvider(l logrus.FieldLogger, span opentracing.Span) func(name string) model.Provider[Model] {
+	return func(name string) model.Provider[Model] {
+		return requests.Provider[attributes, Model](l, span)(requestAccountByName(name), makeModel)
 	}
 }
 
-func ByNameModelProvider(l logrus.FieldLogger, span opentracing.Span) func(name string) ModelProvider {
-	return func(name string) ModelProvider {
-		return requestModelProvider(l, span)(requestAccountByName(name))
+func ByIdModelProvider(l logrus.FieldLogger, span opentracing.Span) func(id uint32) model.Provider[Model] {
+	return func(id uint32) model.Provider[Model] {
+		return requests.Provider[attributes, Model](l, span)(requestAccountById(id), makeModel)
 	}
 }
 
-func ByIdModelProvider(l logrus.FieldLogger, span opentracing.Span) func(id uint32) ModelProvider {
-	return func(id uint32) ModelProvider {
-		return requestModelProvider(l, span)(requestAccountById(id))
-	}
-}
-
-func GetById(l logrus.FieldLogger, span opentracing.Span) func(id uint32) (*Model, error) {
-	return func(id uint32) (*Model, error) {
+func GetById(l logrus.FieldLogger, span opentracing.Span) func(id uint32) (Model, error) {
+	return func(id uint32) (Model, error) {
 		return ByIdModelProvider(l, span)(id)()
 	}
 }
@@ -75,10 +45,10 @@ func IsLoggedIn(l logrus.FieldLogger, span opentracing.Span) func(id uint32) boo
 	}
 }
 
-func makeModel(body requests.DataBody[attributes]) (*Model, error) {
+func makeModel(body requests.DataBody[attributes]) (Model, error) {
 	id, err := strconv.ParseUint(body.Id, 10, 32)
 	if err != nil {
-		return nil, err
+		return Model{}, err
 	}
 	att := body.Attributes
 	m := NewBuilder().
@@ -95,5 +65,5 @@ func makeModel(body requests.DataBody[attributes]) (*Model, error) {
 		SetCountry(att.Country).
 		SetCharacterSlots(att.CharacterSlots).
 		Build()
-	return &m, nil
+	return m, nil
 }

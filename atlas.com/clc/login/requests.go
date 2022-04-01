@@ -11,8 +11,8 @@ const (
 	LoginsResource = account.AccountsService + "logins/"
 )
 
-func CreateLogin(l logrus.FieldLogger, span opentracing.Span) func(sessionId uint32, name string, password string, ipAddress string) (*requests.ErrorListDataContainer, error) {
-	return func(sessionId uint32, name string, password string, ipAddress string) (*requests.ErrorListDataContainer, error) {
+func CreateLogin(l logrus.FieldLogger, span opentracing.Span) func(sessionId uint32, name string, password string, ipAddress string) (requests.ErrorListDataContainer, error) {
+	return func(sessionId uint32, name string, password string, ipAddress string) (requests.ErrorListDataContainer, error) {
 		i := inputDataContainer{
 			Data: dataBody{
 				Id:   "0",
@@ -26,11 +26,9 @@ func CreateLogin(l logrus.FieldLogger, span opentracing.Span) func(sessionId uin
 				},
 			},
 		}
-		resp := &dataContainer{}
-		errResp := &requests.ErrorListDataContainer{}
-		err := requests.Post(l, span)(LoginsResource, i, resp, errResp)
+		_, errResp, err := requests.MakePostRequest[attributes](LoginsResource, i)(l, span)
 		if err != nil {
-			return nil, err
+			return requests.ErrorListDataContainer{}, err
 		}
 		return errResp, nil
 	}

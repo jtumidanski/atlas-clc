@@ -24,11 +24,11 @@ func ReadServerStatusRequest(reader *request.RequestReader) *ServerStatusRequest
 	return &ServerStatusRequest{wid}
 }
 
-func HandleServerStatusRequest(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func HandleServerStatusRequest(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := ReadServerStatusRequest(r)
 		cs := world.GetCapacityStatus(l, span)(p.WorldId())
-		err := s.Announce(writer.WriteWorldCapacityStatus(l)(cs))
+		err := session.Announce(writer.WriteWorldCapacityStatus(l)(cs))(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to issue world capacity status information")
 		}

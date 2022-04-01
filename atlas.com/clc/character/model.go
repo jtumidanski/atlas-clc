@@ -1,8 +1,8 @@
 package character
 
 import (
+	"atlas-clc/character/inventory"
 	"atlas-clc/character/properties"
-	"atlas-clc/inventory"
 	"atlas-clc/pet"
 )
 

@@ -34,8 +34,8 @@ func ReadCharacterListWorldRequest(reader *request.RequestReader) *CharacterList
 	}
 }
 
-func HandleCharacterListWorldRequest(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func HandleCharacterListWorldRequest(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := ReadCharacterListWorldRequest(r)
 
 		w, err := world.GetById(l, span)(p.WorldId())
@@ -45,15 +45,15 @@ func HandleCharacterListWorldRequest(l logrus.FieldLogger, span opentracing.Span
 		}
 
 		if w.CapacityStatus() == world.StatusFull {
-			err = s.Announce(writer.WriteWorldCapacityStatus(l)(world.StatusFull))
+			err = session.Announce(writer.WriteWorldCapacityStatus(l)(world.StatusFull))(s)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to show that world %d is full", w.Id())
 			}
 			return
 		}
 
-		s.SetWorldId(p.WorldId())
-		s.SetChannelId(p.ChannelId())
+		s = session.SetWorldId(p.WorldId())(s.SessionId())
+		s = session.SetChannelId(p.ChannelId())(s.SessionId())
 
 		a, err := account.GetById(l, span)(s.AccountId())
 		if err != nil {
@@ -67,7 +67,7 @@ func HandleCharacterListWorldRequest(l logrus.FieldLogger, span opentracing.Span
 			return
 		}
 
-		err = s.Announce(writer.WriteCharacterList(l)(cs, p.WorldId(), 0, true, a.PIC(), int16(1), a.CharacterSlots()))
+		err = session.Announce(writer.WriteCharacterList(l)(cs, p.WorldId(), 0, true, a.PIC(), int16(1), a.CharacterSlots()))(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to show character list")
 		}

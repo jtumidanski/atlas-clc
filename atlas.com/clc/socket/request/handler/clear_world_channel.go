@@ -9,10 +9,10 @@ import (
 
 const OpCodeClearWorldChannel uint16 = 0x0C
 
-func HandleClearWorldChannelRequest(l logrus.FieldLogger, _ opentracing.Span) func(s *session.Model, _ *request.RequestReader) {
-	return func(s *session.Model, _ *request.RequestReader) {
+func HandleClearWorldChannelRequest(l logrus.FieldLogger, _ opentracing.Span) func(s session.Model, _ *request.RequestReader) {
+	return func(s session.Model, _ *request.RequestReader) {
 		l.Infof("Clearing the world and channel for session %d.", s.SessionId())
-		s.SetWorldId(0)
-		s.SetChannelId(0)
+		s = session.SetWorldId(0)(s.SessionId())
+		s = session.SetChannelId(0)(s.SessionId())
 	}
 }

@@ -1,24 +1,16 @@
 package properties
 
 import (
+	"atlas-clc/model"
 	"atlas-clc/rest/requests"
-	"errors"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"strconv"
 )
 
-func GetByName(l logrus.FieldLogger, span opentracing.Span) func(name string) (*Model, error) {
-	return func(name string) (*Model, error) {
-		dc, err := requestPropertiesByName(name)(l, span)
-		if err != nil {
-			return nil, err
-		}
-		if dc.Length() <= 0 {
-			return nil, errors.New("unable to find character by name")
-		}
-
-		return MakeModel(dc.Data())
+func GetByName(l logrus.FieldLogger, span opentracing.Span) func(name string) (Model, error) {
+	return func(name string) (Model, error) {
+		return requests.Provider[Attributes, Model](l, span)(requestPropertiesByName(name), MakeModel)()
 	}
 }
 
@@ -35,26 +27,28 @@ func GetForWorld(l logrus.FieldLogger, span opentracing.Span) func(accountId uin
 			if err != nil {
 				return nil, err
 			}
-			characters = append(characters, *c)
+			characters = append(characters, c)
 		}
 		return characters, nil
 	}
 }
 
-func GetById(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) (*Model, error) {
-	return func(characterId uint32) (*Model, error) {
-		cs, err := requestPropertiesById(characterId)(l, span)
-		if err != nil {
-			return nil, err
-		}
-		return MakeModel(cs.Data())
+func ByIdModelProvider(l logrus.FieldLogger, span opentracing.Span) func(id uint32) model.Provider[Model] {
+	return func(id uint32) model.Provider[Model] {
+		return requests.Provider[Attributes, Model](l, span)(requestPropertiesById(id), MakeModel)
 	}
 }
 
-func MakeModel(ca requests.DataBody[Attributes]) (*Model, error) {
+func GetById(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) (Model, error) {
+	return func(characterId uint32) (Model, error) {
+		return ByIdModelProvider(l, span)(characterId)()
+	}
+}
+
+func MakeModel(ca requests.DataBody[Attributes]) (Model, error) {
 	cid, err := strconv.ParseUint(ca.Id, 10, 32)
 	if err != nil {
-		return nil, err
+		return Model{}, err
 	}
 	att := ca.Attributes
 	r := NewBuilder().
@@ -83,5 +77,5 @@ func MakeModel(ca requests.DataBody[Attributes]) (*Model, error) {
 		SetMapId(att.MapId).
 		SetSpawnPoint(att.SpawnPoint).
 		Build()
-	return &r, nil
+	return r, nil
 }

@@ -2,7 +2,7 @@ package writer
 
 import (
 	"atlas-clc/character"
-	"atlas-clc/inventory"
+	"atlas-clc/character/inventory"
 	"atlas-clc/pet"
 	"atlas-clc/socket/response"
 	"github.com/sirupsen/logrus"

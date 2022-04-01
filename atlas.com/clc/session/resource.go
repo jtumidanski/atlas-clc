@@ -92,14 +92,14 @@ func handleLoginError(l logrus.FieldLogger) func(span opentracing.Span) func(ses
 		return func(sessionId uint32) func(errorId byte) http.HandlerFunc {
 			return func(errorId byte) http.HandlerFunc {
 				return func(w http.ResponseWriter, r *http.Request) {
-					ses := GetRegistry().Get(sessionId)
-					if ses == nil {
+					ses, ok := GetRegistry().Get(sessionId)
+					if !ok {
 						w.WriteHeader(http.StatusNotFound)
 						return
 					}
 
 					w.WriteHeader(http.StatusNoContent)
-					err := ses.Announce(writer.WriteLoginFailed(l)(errorId))
+					err := Announce(writer.WriteLoginFailed(l)(errorId))(ses)
 					if err != nil {
 						l.WithError(err).Errorf("Unable to issue login failed due to reason %d", errorId)
 					}
