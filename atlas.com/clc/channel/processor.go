@@ -6,8 +6,6 @@ import (
 	"errors"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
-	"math/rand"
-	"time"
 )
 
 func GetAll(l logrus.FieldLogger, span opentracing.Span) ([]Model, error) {
@@ -28,13 +26,8 @@ func GetAllForWorld(l logrus.FieldLogger, span opentracing.Span) func(worldId by
 
 func GetRandomChannelForWorld(l logrus.FieldLogger, span opentracing.Span) func(worldId byte) (Model, error) {
 	return func(worldId byte) (Model, error) {
-		return model.SliceProviderToProviderAdapter(ByWorldModelProvider(l, span)(worldId), randomChannelFilter)()
+		return model.SliceProviderToProviderAdapter(ByWorldModelProvider(l, span)(worldId), model.RandomPreciselyOneFilter[Model])()
 	}
-}
-
-func randomChannelFilter(ms []Model) (Model, error) {
-	rand.Seed(time.Now().Unix())
-	return ms[rand.Intn(len(ms))], nil
 }
 
 func GetForWorldById(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte) (Model, error) {
