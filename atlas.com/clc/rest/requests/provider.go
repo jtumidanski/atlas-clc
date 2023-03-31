@@ -2,11 +2,16 @@ package requests
 
 import (
 	"atlas-clc/model"
+	"errors"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
 type DataBodyTransformer[A any, M any] func(body DataBody[A]) (M, error)
+
+var (
+	NoResultError = errors.New("no result")
+)
 
 func Provider[A any, M any](l logrus.FieldLogger, span opentracing.Span) func(r Request[A], t DataBodyTransformer[A, M]) model.Provider[M] {
 	return func(r Request[A], t DataBodyTransformer[A, M]) model.Provider[M] {
@@ -15,6 +20,10 @@ func Provider[A any, M any](l logrus.FieldLogger, span opentracing.Span) func(r 
 			resp, err := r(l, span)
 			if err != nil {
 				return result, err
+			}
+
+			if resp.Length() == 0 {
+				return result, NoResultError
 			}
 
 			result, err = t(resp.Data())

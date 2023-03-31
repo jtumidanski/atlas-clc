@@ -5,6 +5,8 @@ import (
 	"atlas-clc/character/inventory"
 	"atlas-clc/character/properties"
 	"atlas-clc/pet"
+	"atlas-clc/rest/requests"
+	"errors"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"regexp"
@@ -23,6 +25,10 @@ func IsValidName(l logrus.FieldLogger, span opentracing.Span) func(name string) 
 		_, err = properties.GetByName(l, span)(name)
 		if err == nil {
 			return false, nil
+		}
+
+		if errors.Is(err, requests.NoResultError) {
+			return true, nil
 		}
 
 		if err.Error() != "unable to find character by name" {
